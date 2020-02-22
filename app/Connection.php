@@ -271,15 +271,81 @@ class PayRentalDB {
      * @param int $id
      * @return a stock object
      */
-    public function findByPK($ptype, $rtype, $city) {
+    public function findByPK($ptype, $rtype, $city, $state, $dist) {
         // prepare SELECT statement
-        $stmt = $this->pdo->prepare('SELECT id, property_type, room_type, price, city
-                                       FROM payrental
-                                      WHERE property_type = :ptype and room_type = :rtype and city = :city');
+        $query = "SELECT payrental.id, property_type, room_type, price, payrental.city, payrental.state, distance(latitude::decimal, longitude::decimal, lat, lng) FROM payrental, cityinfo";
+        $count = 0;
+        if(!(strcmp($rtype,"All")==0 OR strcmp($rtype,"")==0))
+        {
+            $count=$count+1;
+            if($count == 1)
+            {
+                $query=$query." WHERE room_type = :rtype";
+            }
+            else{
+                $query=$query." AND room_type = :rtype";
+            }
+        }
+        if(!(strcmp($ptype,"All")==0 OR strcmp($ptype,"")==0))
+        {
+            $count=$count+1;
+            if($count == 1)
+            {
+                $query=$query." WHERE property_type = :ptype";
+            }
+            else{
+                $query=$query." AND property_type = :ptype";
+            }
+        }
+        if(!(strcmp($city,"All")==0 OR strcmp($city,"")==0))
+        {
+            $count=$count+1;
+            if($count == 1)
+            {
+                $query=$query." WHERE cityinfo.city = :city";
+            }
+            else{
+                $query=$query." AND cityinfo.city = :city";
+            }
+        }
+        if(!(strcmp($state,"All")==0 OR strcmp($state,"")==0))
+        {
+            $count=$count+1;
+            if($count == 1)
+            {
+                $query=$query." WHERE cityinfo.state_name = :state";
+            }
+            else{
+                $query=$query." AND cityinfo.state_name = :state";
+            }
+        }
+        $query=$query." AND distance(latitude::decimal, longitude::decimal, lat, lng)<:dist order by distance";
+
+        // echo $query;
+        $stmt = $this->pdo->prepare($query);
+
         // bind value to the :id parameter
-        $stmt->bindValue(':city', $city);
-        $stmt->bindValue(':ptype', $ptype);
-        $stmt->bindValue(':rtype', $rtype);
+        if(!(strcmp($rtype,"All")==0 OR strcmp($rtype,"")==0))
+        {
+            $stmt->bindValue(':rtype', $rtype);
+        }
+        if(!(strcmp($ptype,"All")==0 OR strcmp($ptype,"")==0))
+        {
+            $stmt->bindValue(':ptype', $ptype);
+        }
+        if(!(strcmp($city,"All")==0 OR strcmp($city,"")==0))
+        {
+            $stmt->bindValue(':city', $city);
+        }
+        if(!(strcmp($state,"All")==0 OR strcmp($state,"")==0))
+        {
+            $stmt->bindValue(':state', $state);
+        }
+        $stmt->bindValue(':dist', $dist);
+
+        
+        
+        
         
         // execute the statement
         $stmt->execute();
@@ -294,7 +360,9 @@ class PayRentalDB {
                 'property_type' => $row['property_type'],
                 'room_type' => $row['room_type'],
                 'price' => $row['price'],
-                'city' => $row['city']
+                'city' => $row['city'],
+                'state' => $row['state'],
+                'distance' => $row['distance']
             ];
         }
         return $stocks;
