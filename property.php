@@ -1,25 +1,39 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>PostgreSQL PHP Querying Data Demo</title>
-        <link rel="stylesheet" href="https://cdn.rawgit.com/twbs/bootstrap/v4-dev/dist/css/bootstrap.css">
-        <link rel="stylesheet" href="index.css">
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script> 
-        <script src="//geodata.solutions/includes/statecity.js"></script>
-    </head>
-    <body>
-        <form action="index.php" method="GET">
+<html lang="en-ca">
+<head>
+    <meta charset="utf-8">
+    <!-- <meta http-equiv="X-UA-Compatible" content="IE=edge"> -->
+    <link rel="stylesheet" href="./mycss.css" type="text/css">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script> 
+    <script src="//geodata.solutions/includes/statecity.js"></script>
+    <title>HOME (page 1/5)</title>
+</head>
+<body id="property">  <!-- id indicates page; is used by menu CSS to indicate active page.  No JS needed. -->
+
+    <div class="outer">
+        <?php include "./header.php"; ?>
+        <?php include "./mynav.php"; ?>
+
+        <form action="property.php" method="GET">
             <!-- Price Range($): <input type="number" name="lower"> <input type="number" name="upper"> -->
+            
             <input type="hidden" name="country" id="countryId" value="US"/>
+            
             State: <select name="state" class="states order-alpha" id="stateId">
                 <option value="">Select State</option>
             </select>
+            
             City: <select name="city" class="cities order-alpha" id="cityId">
                 <option value="">Select City</option>
             </select>
-            Distance: <input type="range"  name="dist" min="0" max="200" value="10" step="5" list="tickmarks" id="rangeInput" oninput="output.value = rangeInput.value">
-            <output id="output" for="rangeInput">10</output> <!-- Just to display selected value -->
+            
+            Distance: <br> <input type="range" name="dist" min="0" max="200" step = "5" id="a" value="0" class ="slider" oninput="x.value=parseInt(a.value)"><output name="x" for="a"></output>
+            
+            <br>
+            Price: <br><input type="range" name="price" min="0" max="1500" step = "5" id="b" value="0" class ="slider" oninput="y.value=parseInt(b.value)"><output name="y" for="b"></output>
+
             <br> <br>
+            
             Property Type: <datalist id="psugg" style="height: 150px;">
                                 <option value="All"></option>
                                 <option value="Aparthotel"></option>
@@ -84,14 +98,20 @@
                             <option value="Hotel room"></option>
                         </datalist>
                         <input  autoComplete="on" list="suggestions" name="rtype" /> 
+            Sort By: <datalist id="options">
+                            <option value="Price"></option>
+                            <option value="Distance"></option>
+                        </datalist>
+                        <input  autoComplete="on" list="options" name="sort" /> 
             <input type="submit">
         </form>
         <?php 
+            error_reporting(E_PARSE);
             require 'vendor/autoload.php';
             
             use PostgreSQLTutorial\Connection as Connection;
             use PostgreSQLTutorial\PayRentalDB as PayRentalDB;
-            
+                
             try {
                 // connect to the PostgreSQL database
                 $pdo = Connection::get()->connect();
@@ -100,16 +120,17 @@
                 // // get all stocks data
                 // $stocks = $PayRentalDB->all();
                 // get all stocks data
-                $stocks = $PayRentalDB->findByPK($_GET["ptype"], $_GET["rtype"], $_GET["city"], $_GET["state"], $_GET["dist"]);
-
-
+                $stocks = $PayRentalDB->findByPK($_GET["ptype"], $_GET["rtype"], $_GET["city"], $_GET["state"], $_GET["dist"], $_GET["price"], $_GET["sort"]);
+                
             } catch (\PDOException $e) {
+                echo "<h4 style='color:red'> Please enter the details </h4>";
                 echo $e->getMessage();
             }
         ?>
         <div class="container">
             <h1>Property List</h1>
-            <table class="table table-bordered">
+            <?php echo count($stocks)." results found!";?>
+            <table>
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -127,7 +148,7 @@
                             <td><?php echo htmlspecialchars($stock['id']) ?></td>
                             <td><?php echo htmlspecialchars($stock['property_type']); ?></td>
                             <td><?php echo htmlspecialchars($stock['room_type']); ?></td>
-                            <td><?php echo htmlspecialchars($stock['price']); ?></td>
+                            <td><?php echo htmlspecialchars("$".$stock['price']); ?></td>
                             <td><?php echo htmlspecialchars($stock['city']); ?></td>
                             <td><?php echo htmlspecialchars($stock['state']); ?></td>
                             <td><?php echo htmlspecialchars($stock['distance']); ?></td>
@@ -136,5 +157,9 @@
                 </tbody>
             </table>
         </div>
-    </body>
+        
+        <?php include "./footer.php"; ?>
+    </div>
+
+</body>
 </html>

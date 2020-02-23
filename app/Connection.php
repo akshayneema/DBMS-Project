@@ -1,5 +1,4 @@
 <?php
- 
 namespace PostgreSQLTutorial;
  
 /**
@@ -271,10 +270,12 @@ class PayRentalDB {
      * @param int $id
      * @return a stock object
      */
-    public function findByPK($ptype, $rtype, $city, $state, $dist) {
+    public function findByPK($ptype, $rtype, $city, $state, $dist, $price, $sortby) {
         // prepare SELECT statement
         $query = "SELECT payrental.id, property_type, room_type, price, payrental.city, payrental.state, distance(latitude::decimal, longitude::decimal, lat, lng) FROM payrental, cityinfo";
         $count = 0;
+        $state_entered = false;
+        $city_entered = false;
         if(!(strcmp($rtype,"All")==0 OR strcmp($rtype,"")==0))
         {
             $count=$count+1;
@@ -300,6 +301,7 @@ class PayRentalDB {
         if(!(strcmp($city,"All")==0 OR strcmp($city,"")==0))
         {
             $count=$count+1;
+            $city_entered = true;
             if($count == 1)
             {
                 $query=$query." WHERE cityinfo.city = :city";
@@ -311,6 +313,7 @@ class PayRentalDB {
         if(!(strcmp($state,"All")==0 OR strcmp($state,"")==0))
         {
             $count=$count+1;
+            $state_entered = true;
             if($count == 1)
             {
                 $query=$query." WHERE cityinfo.state_name = :state";
@@ -319,7 +322,18 @@ class PayRentalDB {
                 $query=$query." AND cityinfo.state_name = :state";
             }
         }
-        $query=$query." AND distance(latitude::decimal, longitude::decimal, lat, lng)<:dist order by distance";
+        if($count == 1)
+        {
+            $query=$query." WHERE payrental.price <= :price";
+        }
+        else{
+            $query=$query." AND payrental.price <= :price";
+        }
+        if ($state_entered AND $city_entered)
+        {
+            $query=$query." AND distance(latitude::decimal, longitude::decimal, lat, lng)<:dist order by ".$sortby." LIMIT 10;";
+        }
+        
 
         // echo $query;
         $stmt = $this->pdo->prepare($query);
@@ -341,14 +355,17 @@ class PayRentalDB {
         {
             $stmt->bindValue(':state', $state);
         }
-        $stmt->bindValue(':dist', $dist);
+        if ($state_entered AND $city_entered)
+        {
+            $stmt->bindValue(':dist', $dist);
+        }
+        $stmt->bindValue(':price', $price);
 
         
         
-        
-        
         // execute the statement
-        $stmt->execute();
+        if ($state_entered AND $city_entered)
+            $stmt->execute();
  
         // // return the result set as an object
         // return $stmt->fetchObject();
@@ -366,6 +383,106 @@ class PayRentalDB {
             ];
         }
         return $stocks;
+    }
+
+     /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function findCityList($state) {
+        // prepare SELECT statement
+        $query = "SELECT city FROM cityinfo WHERE state_name = :state;";
+
+        // echo $query;
+        $stmt = $this->pdo->prepare($query);
+        $stmt->bindValue(':state', $state);
+        
+        // execute the statement
+        $stmt->execute();
+
+        $city_list = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $city_list[] = ['city' => $row['city']];
+        }
+        return $city_list;
+    }
+
+     /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function signup($u, $p, $cp) {
+        // Define variables and initialize with empty values
+        $username = $password = $confirm_password = "";
+        $username_err = $password_err = $confirm_password_err = "";
+         
+        // Validate username
+        if(empty(trim($u))){
+            $username_err = "Please enter a username.";
+        } else{
+            // Prepare a select statement
+            $query = "SELECT id FROM users WHERE username = :username";
+            $stmt = $this->pdo->prepare($query);
+            $stmt->bindValue(':username', $u);
+            $stmt->execute();
+
+            $stocks = [];
+            while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+                $stocks[] = [
+                    'id' => $row['id']
+                ];
+            }
+            // echo " stocks count: ".count($stocks)." ";
+
+            if(count($stocks) == 1){
+                $username_err = "This username is already taken.";
+            } else{
+                $username = trim($u);
+            } 
+        }
+
+        // Validate password
+        if(empty(trim($p))){
+            $password_err = "Please enter a password.";     
+        } elseif(strlen(trim($p)) < 6){
+            $password_err = "Password must have atleast 6 characters.";
+        } else{
+            $password = trim($p);
+        }
+
+        // Validate confirm password
+        if(empty(trim($cp))){
+            $confirm_password_err = "Please confirm password.";     
+        } else{
+            $confirm_password = trim($cp);
+            if(empty($password_err) && ($password != $confirm_password)){
+                $confirm_password_err = "Password did not match.";
+            }
+        }
+        
+        // Check input errors before inserting in database
+        if(empty($username_err) && empty($password_err) && empty($confirm_password_err)){
+            
+            // Prepare an insert statement
+            $query = "INSERT INTO users (username, password) VALUES (:username, :password)";
+            $stmt = $this->pdo->prepare($query);
+            $stmt->bindValue(':username', $username);
+            $stmt->bindValue(':password', $password);
+            $stmt->execute();
+            echo "query done";
+        }
+
+        
+        $output = [];
+        $output[] = [
+                'username_err' => $username_err,
+                'password_err' => $password_err,
+                'confirm_password_err' => $confirm_password_err
+            ];
+        // echo " | in the end username: ".$username_err." password: ".$output["password_err"]." conform_password: ".$output["confirm_password_err"];
+        return array($username_err, $password_err, $confirm_password_err);
     }
 }
 

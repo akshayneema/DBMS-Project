@@ -1,0 +1,140 @@
+/*select {
+    border:0;
+    background:transparent;
+    height:32px;
+    border:1px solid #d8d8d8;
+    width:200px;
+    -webkit-appearance: none;
+}*/
+
+
+/* This demo stylesheet ONLY styles the nav menu. */
+a {
+    color:#33348e;
+    text-decoration:none;
+    text-transform:uppercase;
+}
+nav {
+    background-color:#33348e;
+    font-family:verdana,arial,times,serif;
+    font-size:.875em;
+    overflow:hidden;
+    padding-left:4%;
+}
+nav ul {
+    padding:0;
+    margin:0;
+}
+nav ul li {
+    list-style-type:none;
+    float:left;
+    position:relative;
+    padding:0;
+    margin:0;
+}
+nav ul li a {
+    display:block;
+    color:#fff;
+    padding:.875em .625em;
+    margin:0;
+}
+nav ul li a:hover,
+nav ul li a:focus {
+    background-color:#fff;
+    color:#33348e;
+    text-decoration:underline;
+    font-weight:normal;
+}
+
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+  color: black;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+
+select { 
+    font-size: 15px;
+    appearance: none; 
+    outline: 0; 
+    /*background: green; */
+    background-image: none; 
+    width: 100%; 
+    height: 100%; 
+    color: black; 
+    cursor: pointer; 
+    border:1px solid black; 
+    border-radius:3px; 
+} 
+.select { 
+    position: relative; 
+    display: block; 
+    width: 15em; 
+    height: 2em; 
+    line-height: 3; 
+    overflow: hidden; 
+    border-radius: .25em; 
+    padding-bottom:10px; 
+} 
+
+.slidecontainer {
+  width: 50%;
+}
+
+.slider {
+  -webkit-appearance: none;
+  width: 50%;
+  height: 25px;
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+}
+
+.slider:hover {
+  opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  background: #33348e;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 25px;
+  height: 25px;
+  background: #33348e;
+  cursor: pointer;
+}
+
+/* Right-aligned section inside the top navigation */
+.topnav-right {
+  float: right;
+  padding-right:4%;
+}
+
+/* These selectors style the active page's menu */
+#home .home a,
+#aboutus .aboutus a,
+#property .property a,
+#projects .projects a,
+#contact .contact a {
+    color:#33348e;
+    background-color:#fff;
+    pointer-events:none;
+}
