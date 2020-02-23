@@ -10,7 +10,7 @@
 
 <div class="outer">
     <?php include "./header.php"; ?>
-    <?php include "./mynav.php"; ?>
+    <?php include "./mynav_logged_in.php"; ?>
 
     <main>
         <div><h2>Made by Akshay Neema, Riya Singh, Siddhant Shingi</h2></div>  <!-- Use whatever tags are appropriate for content. -->

@@ -31,7 +31,7 @@
     <title>Sign Up</title>
     <link rel="stylesheet" href="./mycss.css" type="text/css">
 </head>
-<body>
+<body id = 'sign_up'>
     <?php include "./header.php"; ?>
     <?php include "./mynav.php"; ?>
     <div class="wrapper">
@@ -58,7 +58,6 @@
                 <input type="reset" class="btn btn-default" value="Reset">
             </div>
             <p>Already have an account? <a href="login.php">Login here</a>.</p>
-            
             <?php if (!empty($a)){ ?>
                 <h2> <?php echo $a; ?> </h2>
             <?php } else if (!empty($b)) { ?>

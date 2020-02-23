@@ -38,12 +38,19 @@ nav ul li a {
     padding:.875em .625em;
     margin:0;
 }
+
+/* Right-aligned section inside the top navigation */
 nav ul li a:hover,
 nav ul li a:focus {
     background-color:#fff;
     color:#33348e;
     text-decoration:underline;
     font-weight:normal;
+}
+
+.topnav-right {
+  float: right;
+  padding-right:4%;
 }
 
 table {
@@ -122,17 +129,13 @@ select {
   cursor: pointer;
 }
 
-/* Right-aligned section inside the top navigation */
-.topnav-right {
-  float: right;
-  padding-right:4%;
-}
+
 
 /* These selectors style the active page's menu */
 #home .home a,
 #aboutus .aboutus a,
 #property .property a,
-#projects .projects a,
+#reset_password .reset_password a,
 #contact .contact a {
     color:#33348e;
     background-color:#fff;

@@ -12,7 +12,7 @@
 
     <div class="outer">
         <?php include "./header.php"; ?>
-        <?php include "./mynav.php"; ?>
+        <?php include "./mynav_logged_in.php"; ?>
 
         <form action="property.php" method="GET">
             <!-- Price Range($): <input type="number" name="lower"> <input type="number" name="upper"> -->

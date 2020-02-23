@@ -471,18 +471,94 @@ class PayRentalDB {
             $stmt->bindValue(':username', $username);
             $stmt->bindValue(':password', $password);
             $stmt->execute();
-            echo "query done";
         }
 
-        
-        $output = [];
-        $output[] = [
-                'username_err' => $username_err,
-                'password_err' => $password_err,
-                'confirm_password_err' => $confirm_password_err
-            ];
-        // echo " | in the end username: ".$username_err." password: ".$output["password_err"]." conform_password: ".$output["confirm_password_err"];
         return array($username_err, $password_err, $confirm_password_err);
+    }
+
+     /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function login($u, $p, $ue, $pe) {
+        $username = $password = "";
+        $username_err = $ue;
+        $password_err = $pe;
+
+        // Validate credentials
+        if(empty($username_err) && empty($password_err)){
+            // Prepare a select statement
+            $query = "SELECT id, username, password FROM users WHERE username = :username";
+            $stmt = $this->pdo->prepare($query);
+            $stmt->bindValue(':username', $u);
+            $stmt->execute();
+
+            $stocks = [];
+            while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+                $stocks[] = [
+                    'id' => $row['id'],
+                    'username' => $row['username'],
+                    'password' => $row['password']
+                ];
+            }
+            if (count($stocks) == 0) {
+                $username_err = "No account found with that username.";
+            }
+
+            if (!(strcmp($p, $stocks[0]["password"]) == 0)) {
+                $password_err = "The password you entered was not valid.";
+            }
+
+            
+        }  
+        return array($username_err, $password_err);
+    }
+
+
+     /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function reset_password($u, $op, $np, $cp) {
+        // $username = $old_password = $new_password = $confirm_password = "";
+        $username_err = $old_password_err = $new_password_err = $confirm_password_err = "";
+        echo "after call: ".$u;
+
+        $query = "SELECT id, username, password FROM users WHERE username = :username";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->bindValue(':username', $u);
+        $stmt->execute();
+
+        $stocks = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $stocks[] = [
+                'id' => $row['id'],
+                'username' => $row['username'],
+                'password' => $row['password']
+            ];
+        }
+
+        echo "count(): ".count($stocks);
+        if (count($stocks) == 0) {
+            $username_err = "No account found with that username.";
+        }
+
+        if (!(strcmp($op, $stocks[0]["password"]) == 0)) {
+            $old_password_err = "The old password you entered was not valid.";
+        }
+
+        if (empty($new_password_err) && empty($confirm_password_err) && empty($old_password_err) && empty($username_err)) {
+            $query = "UPDATE users SET password = :new_password WHERE id = :id";
+            $stmt = $this->pdo->prepare($query);
+            $stmt->bindValue(':new_password', $np);
+            $stmt->bindValue(':id', $stocks[0]['id']);
+            $stmt->execute();
+            echo "update query done";
+        }
+
+        return array($username_err, $old_password_err, $new_password_err, $confirm_password_err);
     }
 }
 

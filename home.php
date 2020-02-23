@@ -10,8 +10,7 @@
 
 <div class="outer">
     <?php include "./header.php"; ?>
-    <?php include "./mynav.php"; ?>
-    <?php include "./login.php"; ?>
+    <?php include "./mynav_logged_in.php"; ?>
     <main>
         <div></div>  <!-- Use whatever tags are appropriate for content. -->
     </main>
