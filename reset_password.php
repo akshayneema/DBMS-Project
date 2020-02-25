@@ -16,7 +16,7 @@
 
     // Define variables and initialize with empty values
     $username = $old_password = $new_password = $confirm_password = "";
-    $username_err = $old_password_err = $new_password_err = $confirm_password_err = "";
+    $username_err = $old_password_err = $new_password_err = $confirm_password_err = $type_err  = "";
 
     $processing = false;
 
@@ -55,10 +55,17 @@
             }
         }
 
+        if (empty($_POST["type"])) {
+            $type_err = "type is required";
+        }
+
         $a = $username_err;
         $b = $old_password_err;
         $c = $new_password_err;
         $d = $confirm_password_err;
+        $e = $type_err;
+
+        echo " type before call: ".$_POST["type"]." ";
         
         // Check input errors before updating the database
         if(empty($new_password_err) && empty($confirm_password_err) && empty($old_password_err) && empty($username_err)){    
@@ -69,7 +76,7 @@
                 //
                 $PayRentalDB = new PayRentalDB($pdo);
                 
-                list($a, $b, $c, $d) = $PayRentalDB->reset_password($_POST["username"], $_POST["old_password"], $_POST["new_password"], $_POST["confirm_password"]);
+                list($a, $b, $c, $d) = $PayRentalDB->reset_password($_POST["username"], $_POST["old_password"], $_POST["new_password"], $_POST["confirm_password"], $_POST["type"]);
             
                 $processing = true;
 
@@ -94,6 +101,8 @@
         <h2>Reset Password</h2>
         <p>Please fill out this form to reset your password.</p>
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post"> 
+            <input type="radio" name="type" value="host">Host  
+            <input type="radio" name="type" value="user">User
             <div class="form-group <?php echo (!empty($username_err)) ? 'has-error' : ''; ?>">
                 <label>Username</label>
                 <input type="text" name="username" class="form-control" value="<?php echo $username; ?>">

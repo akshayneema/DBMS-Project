@@ -5,9 +5,10 @@
 
     use PostgreSQLTutorial\Connection as Connection;
     use PostgreSQLTutorial\PayRentalDB as PayRentalDB;
-    $username = $password = $confirm_password = "";
-    $username_err = $password_err = $confirm_password_err = "";
+    $name = $username = $password = $confirm_password = "";
+    $name_err = $username_err = $password_err = $confirm_password_err = "";
     if($_SERVER["REQUEST_METHOD"] == "POST"){
+        
         
         try {
             // connect to the PostgreSQL database
@@ -15,8 +16,8 @@
             //
             $PayRentalDB = new PayRentalDB($pdo);
             
-            list($a, $b, $c) = $PayRentalDB->signup($_POST["username"], $_POST["password"], $_POST["confirm_password"]);
-            
+            list($a, $b, $c) = $PayRentalDB->host_signup($_POST["name"], $_POST["username"], $_POST["password"], $_POST["confirm_password"]);
+            $d = $name_err;
         } catch (\PDOException $e) {
             echo $e->getMessage();
         }
@@ -28,16 +29,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>User Sign Up</title>
+    <title>Sign Up</title>
     <link rel="stylesheet" href="./mycss.css" type="text/css">
 </head>
 <body id = 'sign_up'>
     <?php include "./header.php"; ?>
     <?php include "./mynav.php"; ?>
     <div class="wrapper">
-        <h2>Sign Up</h2>
+        <h2>Host Sign Up</h2>
         <p>Please fill this form to create an account.</p>
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
+            <div class="form-group <?php echo (!empty($name_err)) ? 'has-error' : ''; ?>">
+                <label>Name</label>
+                <input type="text" name="name" class="form-control" value="<?php echo $name; ?>">
+                <span class="help-block"><?php echo $name_err; ?></span>
+            </div>
             <div class="form-group <?php echo (!empty($username_err)) ? 'has-error' : ''; ?>">
                 <label>Username</label>
                 <input type="text" name="username" class="form-control" value="<?php echo $username; ?>">
@@ -57,13 +63,15 @@
                 <input type="submit" class="btn btn-primary" value="Submit">
                 <input type="reset" class="btn btn-default" value="Reset">
             </div>
-            <p>Already have an account? <a href="login.php">Login here</a>.</p>
+            <p>Already have an host account? <a href="host_login.php">Login here</a>.</p>
             <?php if (!empty($a)){ ?>
                 <h2> <?php echo $a; ?> </h2>
             <?php } else if (!empty($b)) { ?>
                 <h2> <?php echo $b; ?> </h2>
             <?php } else if (!empty($c)) { ?>
                 <h2> <?php echo $c; ?> </h2>
+            <?php } else if (!empty($d)) { ?>
+                <h2> <?php echo $d; ?> </h2>
             <?php } ?>
         </form>
     </div>   

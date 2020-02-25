@@ -45,7 +45,7 @@
             //
             $PayRentalDB = new PayRentalDB($pdo);
             
-            list($a, $b) = $PayRentalDB->login($_POST["username"], $_POST["password"], $username_err, $password_err);
+            list($a, $b) = $PayRentalDB->host_login($_POST["username"], $_POST["password"], $username_err, $password_err);
 
             $processing = true;
 
@@ -66,7 +66,7 @@
     <?php include "./header.php"; ?>
     <?php include "./mynav.php"; ?>
     <div class="wrapper">
-        <h2>User Login</h2>
+        <h2>Host Login</h2>
         <p>Please fill in your credentials to login.</p>
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
             <div class="form-group <?php echo (!empty($username_err)) ? 'has-error' : ''; ?>">
@@ -82,7 +82,7 @@
             <div class="form-group">
                 <input type="submit" class="btn btn-primary" value="Login">
             </div>
-            <p>Don't have an account? <a href="sign_up.php">Sign up now</a>.</p>
+            <p>Don't have an account? <a href="host_sign_up.php">Register as host</a>.</p>
             <?php if (!empty($a)){ ?>
                 <h2> <?php echo $a; ?> </h2>
             <?php } else if (!empty($b)) { ?>

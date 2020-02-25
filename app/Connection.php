@@ -481,6 +481,80 @@ class PayRentalDB {
      * @param int $id
      * @return a stock object
      */
+    public function host_signup($name, $u, $p, $cp) {
+        // Define variables and initialize with empty values
+        $username = $password = $confirm_password = "";
+        $name_err = $username_err = $password_err = $confirm_password_err = "";
+         
+        // Validate username
+        if(empty(trim($u))){
+            $username_err = "Please enter a username.";
+        } else{
+            // Prepare a select statement
+            $query = "SELECT host_id FROM hosts WHERE host_username = :username";
+            $stmt = $this->pdo->prepare($query);
+            $stmt->bindValue(':username', $u);
+            $stmt->execute();
+
+            $stocks = [];
+            while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+                $stocks[] = [
+                    'id' => $row['host_id']
+                ];
+            }
+            // echo " stocks count: ".count($stocks)." ";
+
+            if(count($stocks) == 1){
+                $username_err = "This username is already taken.";
+            } else{
+                $username = trim($u);
+            } 
+        }
+
+        // Validate name
+        if(empty(trim($name))){
+            $name_err = "Please enter a name.";     
+        }
+
+        // Validate password
+        if(empty(trim($p))){
+            $password_err = "Please enter a password.";     
+        } elseif(strlen(trim($p)) < 6){
+            $password_err = "Password must have atleast 6 characters.";
+        } else{
+            $password = trim($p);
+        }
+
+        // Validate confirm password
+        if(empty(trim($cp))){
+            $confirm_password_err = "Please confirm password.";     
+        } else{
+            $confirm_password = trim($cp);
+            if(empty($password_err) && ($password != $confirm_password)){
+                $confirm_password_err = "Password did not match.";
+            }
+        }
+        
+        // Check input errors before inserting in database
+        if(empty($username_err) && empty($password_err) && empty($confirm_password_err)){
+            
+            // Prepare an insert statement
+            $query = "INSERT INTO hosts (host_name, host_username, password) VALUES (:name, :username, :password)";
+            $stmt = $this->pdo->prepare($query);
+            $stmt->bindValue(':name', $name);
+            $stmt->bindValue(':username', $username);
+            $stmt->bindValue(':password', $password);
+            $stmt->execute();
+        }
+
+        return array($username_err, $password_err, $confirm_password_err, $name_err);
+    }
+
+     /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
     public function login($u, $p, $ue, $pe) {
         $username = $password = "";
         $username_err = $ue;
@@ -515,50 +589,130 @@ class PayRentalDB {
         return array($username_err, $password_err);
     }
 
+     /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function host_login($u, $p, $ue, $pe) {
+        $username = $password = "";
+        $username_err = $ue;
+        $password_err = $pe;
+
+        // Validate credentials
+        if(empty($username_err) && empty($password_err)){
+            // Prepare a select statement
+            $query = "SELECT host_id, host_username, password FROM hosts WHERE host_username = :username";
+            $stmt = $this->pdo->prepare($query);
+            $stmt->bindValue(':username', $u);
+            $stmt->execute();
+
+            $stocks = [];
+            while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+                $stocks[] = [
+                    'id' => $row['host_id'],
+                    'username' => $row['host_username'],
+                    'password' => $row['password']
+                ];
+            }
+
+            if (count($stocks) == 0) {
+                $username_err = "No account found with that username.";
+            }
+
+            if (!(strcmp($p, $stocks[0]["password"]) == 0)) {
+                $password_err = "The password you entered was not valid.";
+            }
+
+            
+        }  
+        return array($username_err, $password_err);
+    }
+
 
      /**
      * Find stock by id
      * @param int $id
      * @return a stock object
      */
-    public function reset_password($u, $op, $np, $cp) {
+    public function reset_password($u, $op, $np, $cp, $type) {
         // $username = $old_password = $new_password = $confirm_password = "";
         $username_err = $old_password_err = $new_password_err = $confirm_password_err = "";
-        echo "after call: ".$u;
-
-        $query = "SELECT id, username, password FROM users WHERE username = :username";
-        $stmt = $this->pdo->prepare($query);
-        $stmt->bindValue(':username', $u);
-        $stmt->execute();
-
-        $stocks = [];
-        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-            $stocks[] = [
-                'id' => $row['id'],
-                'username' => $row['username'],
-                'password' => $row['password']
-            ];
-        }
-
-        echo "count(): ".count($stocks);
-        if (count($stocks) == 0) {
-            $username_err = "No account found with that username.";
-        }
-
-        if (!(strcmp($op, $stocks[0]["password"]) == 0)) {
-            $old_password_err = "The old password you entered was not valid.";
-        }
-
-        if (empty($new_password_err) && empty($confirm_password_err) && empty($old_password_err) && empty($username_err)) {
-            $query = "UPDATE users SET password = :new_password WHERE id = :id";
+        // echo "after call: ".$u;
+        echo "type: ".$type;
+        if (strcmp($type,"user") == 0) 
+        {
+            $query = "SELECT id, username, password FROM users WHERE username = :username";
             $stmt = $this->pdo->prepare($query);
-            $stmt->bindValue(':new_password', $np);
-            $stmt->bindValue(':id', $stocks[0]['id']);
+            $stmt->bindValue(':username', $u);
             $stmt->execute();
-            echo "update query done";
-        }
 
-        return array($username_err, $old_password_err, $new_password_err, $confirm_password_err);
+            $stocks = [];
+            while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+                $stocks[] = [
+                    'id' => $row['id'],
+                    'username' => $row['username'],
+                    'password' => $row['password']
+                ];
+            }
+
+            echo "count(): ".count($stocks);
+            if (count($stocks) == 0) {
+                $username_err = "No account found with that username.";
+            }
+
+            if (!(strcmp($op, $stocks[0]["password"]) == 0)) {
+                $old_password_err = "The old password you entered was not valid.";
+            }
+
+            if (empty($new_password_err) && empty($confirm_password_err) && empty($old_password_err) && empty($username_err)) {
+                $query = "UPDATE users SET password = :new_password WHERE id = :id";
+                $stmt = $this->pdo->prepare($query);
+                $stmt->bindValue(':new_password', $np);
+                $stmt->bindValue(':id', $stocks[0]['id']);
+                $stmt->execute();
+                echo "update query done";
+            }
+
+            return array($username_err, $old_password_err, $new_password_err, $confirm_password_err);
+        } else
+        {
+            $query = "SELECT host_id, host_username, password FROM hosts WHERE host_username = :username";
+            $stmt = $this->pdo->prepare($query);
+            $stmt->bindValue(':username', $u);
+            $stmt->execute();
+
+            $stocks = [];
+            while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+                $stocks[] = [
+                    'id' => $row['host_id'],
+                    'username' => $row['host_username'],
+                    'password' => $row['password']
+                ];
+            }
+
+            echo "count(): ".count($stocks);
+            if (count($stocks) == 0) {
+                $username_err = "No account found with that username.";
+            }
+
+            echo "compare: ".$op.$stocks[0]["password"];
+            if (!(strcmp($op, $stocks[0]["password"]) == 0)) {
+                $old_password_err = "The old password you entered was not valid.";
+            }
+
+            echo " id: ".$stocks[0]['id']." ";
+            if (empty($new_password_err) && empty($confirm_password_err) && empty($old_password_err) && empty($username_err)) {
+                $query = "UPDATE hosts SET password = :new_password WHERE host_id = :id";
+                $stmt = $this->pdo->prepare($query);
+                $stmt->bindValue(':new_password', $np);
+                $stmt->bindValue(':id', $stocks[0]['id']);
+                $stmt->execute();
+                echo "update query done";
+            }
+
+            return array($username_err, $old_password_err, $new_password_err, $confirm_password_err);
+        }
     }
 }
 
