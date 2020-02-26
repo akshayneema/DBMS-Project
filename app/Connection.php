@@ -272,7 +272,7 @@ class PayRentalDB {
      */
     public function findByPK($ptype, $rtype, $city, $state, $dist, $price, $sortby) {
         // prepare SELECT statement
-        $query = "SELECT payrental.id, property_type, room_type, price, payrental.city, payrental.state, distance(latitude::decimal, longitude::decimal, lat, lng) FROM payrental, cityinfo";
+        $query = "SELECT payrental.id, property_type, room_type, cast(price as integer), payrental.city, number_of_reviews as rcount, cast(review_scores_rating as integer) as rating, round(distance(latitude::decimal, longitude::decimal, lat, lng)::numeric, 2) as distance, picture_url FROM payrental, cityinfo";
         $count = 0;
         $state_entered = false;
         $city_entered = false;
@@ -331,7 +331,12 @@ class PayRentalDB {
         }
         if ($state_entered AND $city_entered)
         {
-            $query=$query." AND distance(latitude::decimal, longitude::decimal, lat, lng)<:dist order by ".$sortby." LIMIT 10;";
+            if(strcmp($sortby,"")==0)
+                $query=$query." AND distance(latitude::decimal, longitude::decimal, lat, lng)<:dist LIMIT 10;";
+            if(strcmp($sortby,"Rating")==0)
+                $query=$query." AND distance(latitude::decimal, longitude::decimal, lat, lng)<:dist AND review_scores_rating is not null order by ".$sortby." desc LIMIT 10;";
+            else
+                $query=$query." AND distance(latitude::decimal, longitude::decimal, lat, lng)<:dist order by ".$sortby." LIMIT 10;";
         }
         
 
@@ -378,8 +383,10 @@ class PayRentalDB {
                 'room_type' => $row['room_type'],
                 'price' => $row['price'],
                 'city' => $row['city'],
-                'state' => $row['state'],
-                'distance' => $row['distance']
+                'distance' => $row['distance'],
+                'rcount' => $row['rcount'],
+                'rating' => $row['rating'],
+                'picture' => $row['picture_url']
             ];
         }
         return $stocks;
