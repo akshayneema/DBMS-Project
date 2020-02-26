@@ -1,16 +1,4 @@
 <?php
-    // Initialize the session
-    // session_start();
-     
-    // Check if the user is already logged in, if yes then redirect him to welcome page
-    // if(isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true){
-    //     header("location: welcome.php");
-    //     exit;
-    // }
-     
-    // Include config file
-    // require_once "./app/config.php";
-
     require 'vendor/autoload.php';
 
     use PostgreSQLTutorial\Connection as Connection;
@@ -59,15 +47,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <title>Add Property</title>
     <link rel="stylesheet" href="./mycss.css" type="text/css">
 </head>
 <body id = 'login'>
     <?php include "./header.php"; ?>
-    <?php include "./mynav.php"; ?>
+    <?php include "./host_mynav.php"; ?>
     <div class="wrapper">
-        <h2>Host Login</h2>
-        <p>Please fill in your credentials to login.</p>
+        <h2>Property Details</h2>
+        <p>Please fill in property details.</p>
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
             <div class="form-group <?php echo (!empty($username_err)) ? 'has-error' : ''; ?>">
                 <label>Username</label>
@@ -80,9 +68,8 @@
                 <span class="help-block"><?php echo $password_err; ?></span>
             </div>
             <div class="form-group">
-                <input type="submit" class="btn btn-primary" value="Login">
+                <input type="submit" class="btn btn-primary" value="Submit">
             </div>
-            <p>Don't have an account? <a href="host_sign_up.php">Register as host</a>.</p>
             <?php if (!empty($a)){ ?>
                 <h2> <?php echo $a; ?> </h2>
             <?php } else if (!empty($b)) { ?>
