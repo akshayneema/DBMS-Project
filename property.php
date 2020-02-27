@@ -89,7 +89,7 @@
                                 <option value="Windmill"></option>
                                 <option value="Yurt"></option>
                             </datalist>
-                            <input  autoComplete="on" list="psugg" name="ptype" /> 
+                            <input  autoComplete="on" list="psugg" name="ptype"/> 
             Room Type: <datalist id="suggestions">
                             <option value="All"></option>
                             <option value="Entire home/apt"></option>
@@ -97,12 +97,13 @@
                             <option value="Shared room"></option>
                             <option value="Hotel room"></option>
                         </datalist>
-                        <input  autoComplete="on" list="suggestions" name="rtype" /> 
+                        <input  autoComplete="on" list="suggestions" name="rtype"/> 
             Sort By: <datalist id="options">
                             <option value="Price"></option>
                             <option value="Distance"></option>
+                            <option value="Rating"></option>
                         </datalist>
-                        <input  autoComplete="on" list="options" name="sort" /> 
+                        <input  autoComplete="on" list="options" name="sort"/> 
             <input type="submit">
         </form>
         <?php 
@@ -124,7 +125,7 @@
                 
             } catch (\PDOException $e) {
                 echo "<h4 style='color:red'> Please enter the details </h4>";
-                echo $e->getMessage();
+                // echo $e->getMessage();
             }
         ?>
         <div class="container">
@@ -138,8 +139,10 @@
                         <th>Room Type</th>
                         <th>Price</th>
                         <th>City</th>
-                        <th>State</th>
+                        <th>No. of Reviews</th>
+                        <th>Rating</th>
                         <th>Distance(km)</th>
+                        <th>Images</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -150,8 +153,14 @@
                             <td><?php echo htmlspecialchars($stock['room_type']); ?></td>
                             <td><?php echo htmlspecialchars("$".$stock['price']); ?></td>
                             <td><?php echo htmlspecialchars($stock['city']); ?></td>
-                            <td><?php echo htmlspecialchars($stock['state']); ?></td>
+                            <td><?php echo htmlspecialchars($stock['rcount']); ?></td>
+                            <td><?php echo htmlspecialchars($stock['rating']); ?></td>
                             <td><?php echo htmlspecialchars($stock['distance']); ?></td>
+                            <td>
+                                <a href="<?php echo htmlspecialchars($stock['picture']); ?>">
+                                    Photos
+                                </a>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
