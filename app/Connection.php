@@ -270,77 +270,45 @@ class PayRentalDB {
      * @param int $id
      * @return a stock object
      */
-    public function findByPK($ptype, $rtype, $city, $state, $dist, $price, $sortby) {
+    public function findByPK($ptype, $rtype, $city, $dist, $price, $sortby) {
         // prepare SELECT statement
-        $query = "SELECT payrental.id, property_type, room_type, cast(price as integer), payrental.city, number_of_reviews as rcount, cast(review_scores_rating as integer) as rating, round(distance(latitude::decimal, longitude::decimal, lat, lng)::numeric, 2) as distance, picture_url FROM payrental, cityinfo";
+        $lat = 0.00;
+        $lng = 0.00;
+        if (strcmp($city,"New York")==0)
+        {
+            $lat = 40.6943;
+            $lng = -73.9249;
+        } else if (strcmp($city,"Chicago")==0)
+        {
+            $lat = 41.8373;
+            $lng = -87.6862;
+        } else if (strcmp($city,"Los Angeles")==0)
+        {
+            $lat = 34.1139;
+            $lng = -118.4068;
+        } 
+        $query = "SELECT payrental.id, property_type, room_type, cast(price as integer), payrental.city, number_of_reviews as rcount, cast(review_scores_rating as integer) as rating, round(distance(latitude::decimal, longitude::decimal, :lat, :lng)::numeric, 2) as distance, picture_url FROM payrental";
         $count = 0;
-        $state_entered = false;
-        $city_entered = false;
+
+        $query=$query." WHERE city_data = :city";
+
         if(!(strcmp($rtype,"All")==0 OR strcmp($rtype,"")==0))
         {
-            $count=$count+1;
-            if($count == 1)
-            {
-                $query=$query." WHERE room_type = :rtype";
-            }
-            else{
-                $query=$query." AND room_type = :rtype";
-            }
+            $query=$query." AND room_type = :rtype";
         }
         if(!(strcmp($ptype,"All")==0 OR strcmp($ptype,"")==0))
         {
-            $count=$count+1;
-            if($count == 1)
-            {
-                $query=$query." WHERE property_type = :ptype";
-            }
-            else{
-                $query=$query." AND property_type = :ptype";
-            }
+            $query=$query." AND property_type = :ptype";
         }
-        if(!(strcmp($city,"All")==0 OR strcmp($city,"")==0))
-        {
-            $count=$count+1;
-            $city_entered = true;
-            if($count == 1)
-            {
-                $query=$query." WHERE cityinfo.city = :city";
-            }
-            else{
-                $query=$query." AND cityinfo.city = :city";
-            }
-        }
-        if(!(strcmp($state,"All")==0 OR strcmp($state,"")==0))
-        {
-            $count=$count+1;
-            $state_entered = true;
-            if($count == 1)
-            {
-                $query=$query." WHERE cityinfo.state_name = :state";
-            }
-            else{
-                $query=$query." AND cityinfo.state_name = :state";
-            }
-        }
-        if($count == 1)
-        {
-            $query=$query." WHERE payrental.price <= :price";
-        }
-        else{
-            $query=$query." AND payrental.price <= :price";
-        }
-        if ($state_entered AND $city_entered)
-        {
-            if(strcmp($sortby,"")==0)
-                $query=$query." AND distance(latitude::decimal, longitude::decimal, lat, lng)<:dist LIMIT 10;";
-            if(strcmp($sortby,"Rating")==0)
-                $query=$query." AND distance(latitude::decimal, longitude::decimal, lat, lng)<:dist AND review_scores_rating is not null order by ".$sortby." desc LIMIT 10;";
-            else
-                $query=$query." AND distance(latitude::decimal, longitude::decimal, lat, lng)<:dist order by ".$sortby." LIMIT 10;";
-        }
+        $query=$query." AND payrental.price <= :price";
+        if(strcmp($sortby,"")==0)
+            $query=$query." AND distance(latitude::decimal, longitude::decimal, :lat1, :lng1)<:dist LIMIT 10;";
+        else if(strcmp($sortby,"Rating")==0)
+            $query=$query." AND distance(latitude::decimal, longitude::decimal, :lat1, :lng1)<:dist AND review_scores_rating is not null order by ".$sortby." desc LIMIT 10;";
+        else
+            $query=$query." AND distance(latitude::decimal, longitude::decimal, :lat1, :lng1)<:dist order by ".$sortby." LIMIT 10;";
         
-
-        // echo $query;
+        echo $query;
         $stmt = $this->pdo->prepare($query);
 
         // bind value to the :id parameter
@@ -356,22 +324,18 @@ class PayRentalDB {
         {
             $stmt->bindValue(':city', $city);
         }
-        if(!(strcmp($state,"All")==0 OR strcmp($state,"")==0))
-        {
-            $stmt->bindValue(':state', $state);
-        }
-        if ($state_entered AND $city_entered)
-        {
-            $stmt->bindValue(':dist', $dist);
-        }
+        $stmt->bindValue(':dist', $dist);
         $stmt->bindValue(':price', $price);
+        $stmt->bindValue(':lat', $lat);
+        $stmt->bindValue(':lng', $lng);
+        $stmt->bindValue(':lat1', $lat);
+        $stmt->bindValue(':lng1', $lng);
 
+        // echo " stmt: ".$stmt;
         
         
         // execute the statement
-        if ($state_entered AND $city_entered)
-            $stmt->execute();
- 
+        $stmt->execute();
         // // return the result set as an object
         // return $stmt->fetchObject();
 
@@ -430,7 +394,7 @@ class PayRentalDB {
             $username_err = "Please enter a username.";
         } else{
             // Prepare a select statement
-            $query = "SELECT id FROM users WHERE username = :username";
+            $query = "SELECT user_id FROM users WHERE username = :username";
             $stmt = $this->pdo->prepare($query);
             $stmt->bindValue(':username', $u);
             $stmt->execute();
@@ -438,7 +402,7 @@ class PayRentalDB {
             $stocks = [];
             while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
                 $stocks[] = [
-                    'id' => $row['id']
+                    'id' => $row['user_id']
                 ];
             }
             // echo " stocks count: ".count($stocks)." ";
@@ -570,7 +534,7 @@ class PayRentalDB {
         // Validate credentials
         if(empty($username_err) && empty($password_err)){
             // Prepare a select statement
-            $query = "SELECT id, username, password FROM users WHERE username = :username";
+            $query = "SELECT user_id, username, password FROM users WHERE username = :username";
             $stmt = $this->pdo->prepare($query);
             $stmt->bindValue(':username', $u);
             $stmt->execute();
@@ -578,7 +542,7 @@ class PayRentalDB {
             $stocks = [];
             while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
                 $stocks[] = [
-                    'id' => $row['id'],
+                    'id' => $row['user_id'],
                     'username' => $row['username'],
                     'password' => $row['password']
                 ];
