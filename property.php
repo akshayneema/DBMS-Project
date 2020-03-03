@@ -127,7 +127,7 @@
                         $stocks = $PayRentalDB->findByPK($_POST["ptype"], $_POST["rtype"], $_POST["city"], $_POST["dist"], $_POST["price"], $_POST["sort"]);
                     } catch (\PDOException $e) {
                         echo "<h4 style='color:red'> Please enter the details </h4>";
-                        echo $e->getMessage();
+                        // echo $e->getMessage();
                     }
                 } else {
                     echo "Please enter the city name!! ";
@@ -165,6 +165,11 @@
                             <td>
                                 <a href="<?php echo htmlspecialchars($stock['picture']); ?>">
                                     Photos
+                                </a>
+                            </td>
+                            <td>
+                                <a href=<?php echo "property_details.php?property_id=".$stock['id'] ?>>
+                                    More Info
                                 </a>
                             </td>
                         </tr>

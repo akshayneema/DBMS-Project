@@ -685,6 +685,95 @@ class PayRentalDB {
             return array($username_err, $old_password_err, $new_password_err, $confirm_password_err);
         }
     }
+
+     /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function get_property_detials($id) {
+        $query = "SELECT name, street, neighbourhood, city, state, zipcode, summary, property_type, room_type, accommodates, bathrooms, bedrooms, beds, amenities, square_feet, host_name, host_since, host_location, host_about, host_response_time, host_response_rate, host_acceptance_rate, host_is_superhost, host_listings_count, host_identity_verified, price, weekly_price, monthly_price, security_deposit, cleaning_fee, guests_included, extra_people, picture_url, instant_bookable, is_business_travel_ready, cancellation_policy, review_scores_rating, review_scores_cleanliness, review_scores_checkin, review_scores_communication, review_scores_location, review_scores_value FROM payrental WHERE id = :id";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->bindValue(':id', $id);
+        $stmt->execute();
+
+        $details = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $details[] = [
+                'id' => $id,
+                'name' => $row['name'],
+                'street' => $row['street'],
+                'neighbourhood' => $row['neighbourhood'],
+                'city' => $row['city'],
+                'state' => $row['state'],
+                'zipcode' => $row['zipcode'],
+                'summary' => $row['summary'],
+                'property_type' => $row['property_type'],
+                'room_type' => $row['room_type'],
+                'accommodates' => $row['accommodates'],
+                'bathrooms' => $row['bathrooms'],
+                'bedrooms' => $row['bedrooms'],
+                'beds' => $row['beds'],
+                'amenities' => $row['amenities'],
+                'square_feet' => $row['square_feet'],
+                'host_name' => $row['host_name'],
+                'host_since' => $row['host_since'],
+                'host_location' => $row['host_location'],
+                'host_about' => $row['host_about'],
+                'host_response_time' => $row['host_response_time'],
+                'host_response_rate' => $row['host_response_rate'],
+                'host_acceptance_rate' => $row['host_acceptance_rate'],
+                'host_is_superhost' => $row['host_is_superhost'],
+                'host_listings_count' => $row['host_listings_count'],
+                'host_identity_verified' => $row['host_identity_verified'],
+                'price' => $row['price'],
+                'weekly_price' => $row['weekly_price'],
+                'monthly_price' => $row['monthly_price'],
+                'security_deposit' => $row['security_deposit'],
+                'cleaning_fee' => $row['cleaning_fee'],
+                'guests_included' => $row['guests_included'],
+                'extra_people' => $row['extra_people'],
+                'picture' => $row['picture_url'],
+                'instant_bookable' => $row['instant_bookable'],
+                'is_business_travel_ready' => $row['is_business_travel_ready'],
+                'cancellation_policy' => $row['cancellation_policy'],
+                'review_scores_rating' => $row['review_scores_rating'],
+                'review_scores_cleanliness' => $row['review_scores_cleanliness'],
+                'review_scores_checkin' => $row['review_scores_checkin'],
+                'review_scores_communication' => $row['review_scores_communication'],
+                'review_scores_location' => $row['review_scores_location'],
+                'review_scores_value' => $row['review_scores_value'],
+            ];
+        }
+        return $details;
+    }
+
+     /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function get_cal_values($id) {
+        $query = "SELECT listing_id, date, available, price FROM calender WHERE listing_id = :id ORDER BY date";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->bindValue(':id', $id);
+        $stmt->execute();
+
+        $cal_values = [];
+        $available_list = [];
+        $price_list = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $cal_values[] = [
+                'id' => $row['listing_id'],
+                'date' => $row['date'],
+                'available' => $row['available'],
+                'price' => $row['price'],
+            ];
+            $available_list[] = $row['available'];
+            $price_list[] = $row['price'];
+        }
+        return array($cal_values,$available_list,$price_list);
+    }
 }
 
  
