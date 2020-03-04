@@ -437,7 +437,7 @@ class PayRentalDB {
         if(empty($username_err) && empty($password_err) && empty($confirm_password_err)){
             
             // Prepare an insert statement
-            $query = "INSERT INTO users (username, password) VALUES (:username, :password)";
+            $query = "INSERT INTO users (user_id ,username, password) VALUES ((select max(user_id + 1) from users),:username, :password)";
             $stmt = $this->pdo->prepare($query);
             $stmt->bindValue(':username', $username);
             $stmt->bindValue(':password', $password);
@@ -510,7 +510,7 @@ class PayRentalDB {
         if(empty($username_err) && empty($password_err) && empty($confirm_password_err)){
             
             // Prepare an insert statement
-            $query = "INSERT INTO hosts (host_name, host_username, password) VALUES (:name, :username, :password)";
+            $query = "INSERT INTO hosts (host_id, host_name, host_username, password) VALUES ((select max(host_id::integer + 1) from hosts),:name, :username, :password)";
             $stmt = $this->pdo->prepare($query);
             $stmt->bindValue(':name', $name);
             $stmt->bindValue(':username', $username);
@@ -556,6 +556,12 @@ class PayRentalDB {
             }
 
             
+        }
+        if(empty($username_err) && empty($password_err))
+        {
+            $query = "INSERT into curruser(user_id) values (".$stocks[0]['id'].")";
+            $stmt = $this->pdo->prepare($query);
+            $stmt->execute();
         }  
         return array($username_err, $password_err);
     }
@@ -596,6 +602,12 @@ class PayRentalDB {
             }
 
             
+        }  
+        if(empty($username_err) && empty($password_err))
+        {
+            $query = "INSERT into currhost(user_id) values (".$stocks[0]['id'].")";
+            $stmt = $this->pdo->prepare($query);
+            $stmt->execute();
         }  
         return array($username_err, $password_err);
     }
@@ -691,6 +703,74 @@ class PayRentalDB {
      * @param int $id
      * @return a stock object
      */
+    public function my_bookings() {
+        // Prepare a select statement
+        // echo $user_id;
+        $query = "SELECT booking_id, payrental.name, bookings.check_in_date::date, bookings.check_out_date::date, (check_out_date::date - check_in_date::date)*price as price FROM bookings, payrental, curruser WHERE bookings.user_id = curruser.user_id and bookings.property_id = payrental.id";
+        $stmt = $this->pdo->prepare($query);
+        // $stmt->bindValue(':userid', $user_id);
+        $stmt->execute();
+
+        $stocks = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $stocks[] = [
+                'booking_id' => $row['booking_id'],
+                'name' => $row['name'],
+                'check_in_date' => $row['check_in_date'],
+                'check_out_date' => $row['check_out_date'],
+                'price' => $row['price']
+            ];
+        }
+
+        if (count($stocks) == 0) {
+            $username_err = "No account found with that username.";
+        }
+
+        if (!(strcmp($p, $stocks[0]["password"]) == 0)) {
+            $password_err = "The password you entered was not valid.";
+        }
+        return $stocks;
+    }
+
+     /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function host_my_bookings() {
+        // Prepare a select statement
+        // echo $user_id;
+        $query = "SELECT booking_id, payrental.name, bookings.check_in_date::date, bookings.check_out_date::date, (check_out_date::date - check_in_date::date)*price as price FROM bookings, payrental, currhost WHERE bookings.host_id = currhost.user_id and bookings.property_id = payrental.id";
+        $stmt = $this->pdo->prepare($query);
+        // $stmt->bindValue(':userid', $user_id);
+        $stmt->execute();
+
+        $stocks = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $stocks[] = [
+                'booking_id' => $row['booking_id'],
+                'name' => $row['name'],
+                'check_in_date' => $row['check_in_date'],
+                'check_out_date' => $row['check_out_date'],
+                'price' => $row['price']
+            ];
+        }
+
+        if (count($stocks) == 0) {
+            $username_err = "No account found with that username.";
+        }
+
+        if (!(strcmp($p, $stocks[0]["password"]) == 0)) {
+            $password_err = "The password you entered was not valid.";
+        }
+        return $stocks;
+    }
+
+    /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
     public function get_property_detials($id) {
         $query = "SELECT name, street, neighbourhood, city, state, zipcode, summary, property_type, room_type, accommodates, bathrooms, bedrooms, beds, amenities, square_feet, host_name, host_since, host_location, host_about, host_response_time, host_response_rate, host_acceptance_rate, host_is_superhost, host_listings_count, host_identity_verified, price, weekly_price, monthly_price, security_deposit, cleaning_fee, guests_included, extra_people, picture_url, instant_bookable, is_business_travel_ready, cancellation_policy, review_scores_rating, review_scores_cleanliness, review_scores_checkin, review_scores_communication, review_scores_location, review_scores_value FROM payrental WHERE id = :id";
         $stmt = $this->pdo->prepare($query);
@@ -753,6 +833,23 @@ class PayRentalDB {
      * @param int $id
      * @return a stock object
      */
+    public function logout() {
+        // Prepare a select statement
+        // echo $user_id;
+        $query = "DELETE from curruser";
+        $stmt = $this->pdo->prepare($query);
+        // $stmt->bindValue(':userid', $user_id);
+        $stmt->execute();
+        $query = "DELETE from currhost";
+        $stmt = $this->pdo->prepare($query);
+        // $stmt->bindValue(':userid', $user_id);
+        $stmt->execute();
+    }
+    /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
     public function get_cal_values($id) {
         $query = "SELECT listing_id, date, available, price FROM calender WHERE listing_id = :id ORDER BY date";
         $stmt = $this->pdo->prepare($query);
@@ -774,7 +871,6 @@ class PayRentalDB {
         }
         return array($cal_values,$available_list,$price_list);
     }
-
 
     /**
      * Find stock by id
@@ -834,6 +930,28 @@ class PayRentalDB {
         return 1;
     }
     
+
+    // /**
+    //  * Find stock by id
+    //  * @param int $id
+    //  * @return a stock object
+    //  */
+    // public function find_name() {
+    //     $query = "SELECT count(*) from curruser";
+    //     $stmt = $this->pdo->prepare($query);
+    //     // $stmt->bindValue(':id', $id);
+    //     $stmt->execute();
+    //     $name = [];
+    //     while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+    //         $name[] = $row['count'];
+    //     }
+    //     if($name[0][0]==1)
+    //     {
+    //         echo 
+    //     }
+    //     return array($cal_values,$available_list,$price_list);
+    // }
+
 }
 
  
