@@ -1,6 +1,7 @@
 <nav>
     <ul>
 		<li class="home"><a href="host_home.php">Home</a></li>
+		<li class="my_property"><a href="my_property.php">My property</a></li>
 		<li class="add_property"><a href="add_property.php">Add property</a></li>
 		<div class="topnav-right">
             <li class="host_booking"><a href="host_booking.php">My bookings</a></li>
