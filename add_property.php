@@ -226,7 +226,7 @@
             </div>   
             <div class="form-group <?php echo (!empty($room_type_err)) ? 'has-error' : ''; ?>">
                 <label>Room type        </label>
-                <input type="text" name="room_type_type" class="form-control" value="<?php echo $room_type; ?>">
+                <input type="text" name="room_type" class="form-control" value="<?php echo $room_type; ?>">
                 <span class="help-block"><?php echo $room_type_err; ?></span>
             </div>   
             <div class="form-group <?php echo (!empty($accommodates_err)) ? 'has-error' : ''; ?>">

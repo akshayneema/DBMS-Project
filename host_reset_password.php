@@ -77,7 +77,7 @@
                 //
                 $PayRentalDB = new PayRentalDB($pdo);
                 
-                list($a, $b, $c, $d) = $PayRentalDB->reset_password($_POST["old_password"], $_POST["new_password"], $_POST["confirm_password"]);
+                list($a, $b, $c, $d) = $PayRentalDB->host_reset_password($_POST["old_password"], $_POST["new_password"], $_POST["confirm_password"]);
             
                 $processing = true;
 
@@ -97,7 +97,7 @@
 </head>
 <body id='reset_password'>
     <?php include "./header.php"; ?>
-    <?php include "./mynav_logged_in.php"; ?>
+    <?php include "./host_mynav.php"; ?>
     <div class="wrapper">
         <h2>Reset Password</h2>
         <p>Please fill out this form to reset your password.</p>
@@ -128,7 +128,7 @@
             </div>
             <div class="form-group">
                 <input type="submit" class="btn btn-primary" value="Submit">
-                <a class="btn btn-link" href="home.php">Cancel</a>
+                <a class="btn btn-link" href="host_home.php">Cancel</a>
             </div>
             <?php if (!empty($a)){ ?>
                 <h2> <?php echo "a ".$a; ?> </h2>
@@ -142,7 +142,7 @@
             <?php if (empty($a) AND empty($b) AND empty($c) AND empty($d) AND $processing){ ?>
                 <h2> SUCCESS </h2>
                 <?php //$processing = true ?>
-                <?php header("location: home.php"); ?>
+                <?php header("location: host_home.php"); ?>
             <?php } ?>
         </form>
     </div>   

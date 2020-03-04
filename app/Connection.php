@@ -618,22 +618,23 @@ class PayRentalDB {
      * @param int $id
      * @return a stock object
      */
-    public function reset_password($u, $op, $np, $cp, $type) {
+    public function reset_password($op, $np, $cp) {
         // $username = $old_password = $new_password = $confirm_password = "";
         $username_err = $old_password_err = $new_password_err = $confirm_password_err = "";
         // echo "after call: ".$u;
-        echo "type: ".$type;
-        if (strcmp($type,"user") == 0) 
-        {
-            $query = "SELECT id, username, password FROM users WHERE username = :username";
+        // echo "type: ".$type;
+        // if (strcmp($type,"user") == 0) 
+        // {
+            // $query = "SELECT id, username, password FROM users WHERE username = :username";
+            $query = "SELECT curruser.user_id, username, password FROM users, curruser WHERE users.user_id = curruser.user_id ";
             $stmt = $this->pdo->prepare($query);
-            $stmt->bindValue(':username', $u);
+            // $stmt->bindValue(':username', $u);
             $stmt->execute();
 
             $stocks = [];
             while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
                 $stocks[] = [
-                    'id' => $row['id'],
+                    'id' => $row['user_id'],
                     'username' => $row['username'],
                     'password' => $row['password']
                 ];
@@ -649,7 +650,7 @@ class PayRentalDB {
             }
 
             if (empty($new_password_err) && empty($confirm_password_err) && empty($old_password_err) && empty($username_err)) {
-                $query = "UPDATE users SET password = :new_password WHERE id = :id";
+                $query = "UPDATE users SET password = :new_password WHERE user_id = :id";
                 $stmt = $this->pdo->prepare($query);
                 $stmt->bindValue(':new_password', $np);
                 $stmt->bindValue(':id', $stocks[0]['id']);
@@ -658,44 +659,45 @@ class PayRentalDB {
             }
 
             return array($username_err, $old_password_err, $new_password_err, $confirm_password_err);
-        } else
-        {
-            $query = "SELECT host_id, host_username, password FROM hosts WHERE host_username = :username";
-            $stmt = $this->pdo->prepare($query);
-            $stmt->bindValue(':username', $u);
-            $stmt->execute();
+        // } 
+        // else
+        // {
+        //     $query = "SELECT host_id, host_username, password FROM hosts WHERE host_username = :username";
+        //     $stmt = $this->pdo->prepare($query);
+        //     $stmt->bindValue(':username', $u);
+        //     $stmt->execute();
 
-            $stocks = [];
-            while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-                $stocks[] = [
-                    'id' => $row['host_id'],
-                    'username' => $row['host_username'],
-                    'password' => $row['password']
-                ];
-            }
+        //     $stocks = [];
+        //     while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+        //         $stocks[] = [
+        //             'id' => $row['host_id'],
+        //             'username' => $row['host_username'],
+        //             'password' => $row['password']
+        //         ];
+        //     }
 
-            echo "count(): ".count($stocks);
-            if (count($stocks) == 0) {
-                $username_err = "No account found with that username.";
-            }
+        //     echo "count(): ".count($stocks);
+        //     if (count($stocks) == 0) {
+        //         $username_err = "No account found with that username.";
+        //     }
 
-            echo "compare: ".$op.$stocks[0]["password"];
-            if (!(strcmp($op, $stocks[0]["password"]) == 0)) {
-                $old_password_err = "The old password you entered was not valid.";
-            }
+        //     echo "compare: ".$op.$stocks[0]["password"];
+        //     if (!(strcmp($op, $stocks[0]["password"]) == 0)) {
+        //         $old_password_err = "The old password you entered was not valid.";
+        //     }
 
-            echo " id: ".$stocks[0]['id']." ";
-            if (empty($new_password_err) && empty($confirm_password_err) && empty($old_password_err) && empty($username_err)) {
-                $query = "UPDATE hosts SET password = :new_password WHERE host_id = :id";
-                $stmt = $this->pdo->prepare($query);
-                $stmt->bindValue(':new_password', $np);
-                $stmt->bindValue(':id', $stocks[0]['id']);
-                $stmt->execute();
-                echo "update query done";
-            }
+        //     echo " id: ".$stocks[0]['id']." ";
+        //     if (empty($new_password_err) && empty($confirm_password_err) && empty($old_password_err) && empty($username_err)) {
+        //         $query = "UPDATE hosts SET password = :new_password WHERE host_id = :id";
+        //         $stmt = $this->pdo->prepare($query);
+        //         $stmt->bindValue(':new_password', $np);
+        //         $stmt->bindValue(':id', $stocks[0]['id']);
+        //         $stmt->execute();
+        //         echo "update query done";
+        //     }
 
-            return array($username_err, $old_password_err, $new_password_err, $confirm_password_err);
-        }
+        //     return array($username_err, $old_password_err, $new_password_err, $confirm_password_err);
+        // }
     }
 
      /**
@@ -872,26 +874,117 @@ class PayRentalDB {
         return array($cal_values,$available_list,$price_list);
     }
 
-    // /**
-    //  * Find stock by id
-    //  * @param int $id
-    //  * @return a stock object
-    //  */
-    // public function find_name() {
-    //     $query = "SELECT count(*) from curruser";
-    //     $stmt = $this->pdo->prepare($query);
-    //     // $stmt->bindValue(':id', $id);
-    //     $stmt->execute();
-    //     $name = [];
-    //     while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
-    //         $name[] = $row['count'];
-    //     }
-    //     if($name[0][0]==1)
-    //     {
-    //         echo 
-    //     }
-    //     return array($cal_values,$available_list,$price_list);
-    // }
+    /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function find_name() {
+        $query = "SELECT username from curruser, users where curruser.user_id=users.user_id";
+        $stmt = $this->pdo->prepare($query);
+        // $stmt->bindValue(':id', $id);
+        $stmt->execute();
+        $name = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $name[] = $row['username'];
+        }
+        if(count($name)==0)
+        {
+            $query = "SELECT host_username from currhost, hosts where currhost.user_id=hosts.host_id::integer";
+            $stmt = $this->pdo->prepare($query);
+            // $stmt->bindValue(':id', $id);
+            $stmt->execute();
+            $host_name = [];
+            while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+                $host_name[] = $row['host_username'];
+            }
+            if(count($host_name)>0)
+                echo ", ".$host_name[0];
+        }
+        else
+            echo ", ".$name[0];
+    }
+    /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function host_reset_password($op, $np, $cp) {
+        // $username = $old_password = $new_password = $confirm_password = "";
+        $username_err = $old_password_err = $new_password_err = $confirm_password_err = "";
+        // echo "after call: ".$u;
+        // echo "type: ".$type;
+        // if (strcmp($type,"user") == 0) 
+        // {
+            // $query = "SELECT id, username, password FROM users WHERE username = :username";
+            $query = "SELECT currhost.user_id, host_username, password FROM hosts, currhost WHERE hosts.host_id::integer = currhost.user_id ";
+            $stmt = $this->pdo->prepare($query);
+            // $stmt->bindValue(':username', $u);
+            $stmt->execute();
+
+            $stocks = [];
+            while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+                $stocks[] = [
+                    'id' => $row['user_id'],
+                    'username' => $row['host_username'],
+                    'password' => $row['password']
+                ];
+            }
+
+            echo "count(): ".count($stocks);
+            if (count($stocks) == 0) {
+                $username_err = "No account found with that username.";
+            }
+
+            if (!(strcmp($op, $stocks[0]["password"]) == 0)) {
+                $old_password_err = "The old password you entered was not valid.";
+            }
+
+            if (empty($new_password_err) && empty($confirm_password_err) && empty($old_password_err) && empty($username_err)) {
+                $query = "UPDATE hosts SET password = :new_password WHERE host_id = :id";
+                $stmt = $this->pdo->prepare($query);
+                $stmt->bindValue(':new_password', $np);
+                $stmt->bindValue(':id', $stocks[0]['id']);
+                $stmt->execute();
+                echo "update query done";
+            }
+
+            return array($username_err, $old_password_err, $new_password_err, $confirm_password_err);
+    }
+    /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function add_property($name , $picture_url , $city , $state , $zipcode , $country , $latitude , $longitude , $property_type , $room_type , $accommodates , $bathrooms , $bedrooms , $beds , $price , $security_deposit , $cleaning_fee , $minimum_nights , $maximum_nights) {
+    
+            $query = "insert into payrental(name , picture_url , city , state , zipcode , country , latitude , longitude , property_type , room_type , accommodates , bathrooms , bedrooms , beds , price , security_deposit , cleaning_fee , minimum_nights , maximum_nights) values (:name , :picture_url , :city , :state , :zipcode , :country , :latitude , :longitude , :property_type , :room_type , :accommodates , :bathrooms , :bedrooms , :beds , :price , :security_deposit , :cleaning_fee , :minimum_nights , :maximum_nights)";
+            $stmt = $this->pdo->prepare($query);
+            //$stmt->bindValue(':username', $u);
+            
+            $stmt->bindValue(':name', $name );
+            $stmt->bindValue(':picture_url', $picture_url); 
+            $stmt->bindValue(':city', $city); 
+            $stmt->bindValue(':state', $state); 
+            $stmt->bindValue(':zipcode', $zipcode); 
+            $stmt->bindValue(':country', $country); 
+            $stmt->bindValue(':latitude', $latitude); 
+            $stmt->bindValue(':longitude', $longitude); 
+            $stmt->bindValue(':property_type', $property_type); 
+            $stmt->bindValue(':room_type', $room_type); 
+            $stmt->bindValue(':accommodates', $accommodates); 
+            $stmt->bindValue(':bathrooms', $bathrooms); 
+            $stmt->bindValue(':bedrooms', $bedrooms); 
+            $stmt->bindValue(':beds', $beds); 
+            $stmt->bindValue(':price', $price); 
+            $stmt->bindValue(':security_deposit', $security_deposit); 
+            $stmt->bindValue(':cleaning_fee', $cleaning_fee); 
+            $stmt->bindValue(':minimum_nights', $minimum_nights); 
+            $stmt->bindValue(':maximum_nights', $maximum_nights);
+            $stmt->execute();
+    }
 }
+
+
 
  
