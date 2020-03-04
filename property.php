@@ -148,6 +148,7 @@
                         <th>No. of Reviews</th>
                         <th>Rating</th>
                         <th>Distance(km)</th>
+                        <th>Available (Y/N)</th>
                         <th>Images</th>
                     </tr>
                 </thead>
@@ -162,6 +163,11 @@
                             <td><?php echo htmlspecialchars($stock['rcount']); ?></td>
                             <td><?php echo htmlspecialchars($stock['rating']); ?></td>
                             <td><?php echo htmlspecialchars($stock['distance']); ?></td>
+                            <?php if ($stock['full_booked'] == 0) { ?>
+                                <td>N</td>
+                            <?php } else {?> 
+                                <td>Y</td>
+                            <?php } ?>
                             <td>
                                 <a href="<?php echo htmlspecialchars($stock['picture']); ?>">
                                     Photos

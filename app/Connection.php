@@ -287,7 +287,7 @@ class PayRentalDB {
             $lat = 34.1139;
             $lng = -118.4068;
         } 
-        $query = "SELECT payrental.id, property_type, room_type, cast(price as integer), payrental.city, number_of_reviews as rcount, cast(review_scores_rating as integer) as rating, round(distance(latitude::decimal, longitude::decimal, :lat, :lng)::numeric, 2) as distance, picture_url FROM payrental";
+        $query = "SELECT payrental.id, property_type, room_type, cast(price as integer), payrental.city, number_of_reviews as rcount, cast(review_scores_rating as integer) as rating, round(distance(latitude::decimal, longitude::decimal, :lat, :lng)::numeric, 2) as distance, picture_url, (case when id in (select listing_id from calender group by listing_id having count(*) filter (where available = 't') = 0) then 0 else 1 end) as full_booked FROM payrental";
         $count = 0;
 
         $query=$query." WHERE city_data = :city";
@@ -302,13 +302,13 @@ class PayRentalDB {
         }
         $query=$query." AND payrental.price <= :price";
         if(strcmp($sortby,"")==0)
-            $query=$query." AND distance(latitude::decimal, longitude::decimal, :lat1, :lng1)<:dist LIMIT 10;";
+            $query=$query." AND distance(latitude::decimal, longitude::decimal, :lat1, :lng1)<:dist LIMIT 100;";
         else if(strcmp($sortby,"Rating")==0)
-            $query=$query." AND distance(latitude::decimal, longitude::decimal, :lat1, :lng1)<:dist AND review_scores_rating is not null order by ".$sortby." desc LIMIT 10;";
+            $query=$query." AND distance(latitude::decimal, longitude::decimal, :lat1, :lng1)<:dist AND review_scores_rating is not null order by ".$sortby." desc LIMIT 100;";
         else
-            $query=$query." AND distance(latitude::decimal, longitude::decimal, :lat1, :lng1)<:dist order by ".$sortby." LIMIT 10;";
-        
-        echo $query;
+            $query=$query." AND distance(latitude::decimal, longitude::decimal, :lat1, :lng1)<:dist order by ".$sortby." LIMIT 100;";
+
+        // echo $query;
         $stmt = $this->pdo->prepare($query);
 
         // bind value to the :id parameter
@@ -350,7 +350,8 @@ class PayRentalDB {
                 'distance' => $row['distance'],
                 'rcount' => $row['rcount'],
                 'rating' => $row['rating'],
-                'picture' => $row['picture_url']
+                'picture' => $row['picture_url'],
+                'full_booked' => $row['full_booked']
             ];
         }
         return $stocks;
@@ -534,9 +535,10 @@ class PayRentalDB {
         // Validate credentials
         if(empty($username_err) && empty($password_err)){
             // Prepare a select statement
-            $query = "SELECT user_id, username, password FROM users WHERE username = :username";
+            $query = "SELECT user_id, username, password FROM users WHERE username = :username and password = :password";
             $stmt = $this->pdo->prepare($query);
             $stmt->bindValue(':username', $u);
+            $stmt->bindValue(':password', $p);
             $stmt->execute();
 
             $stocks = [];
@@ -548,12 +550,12 @@ class PayRentalDB {
                 ];
             }
             if (count($stocks) == 0) {
-                $username_err = "No account found with that username.";
+                $username_err = "No account found with that username and password.";
             }
 
-            if (!(strcmp($p, $stocks[0]["password"]) == 0)) {
-                $password_err = "The password you entered was not valid.";
-            }
+            // if (!(strcmp($p, $stocks[0]["password"]) == 0)) {
+                // $password_err = "The password you entered was not valid.";
+            // }
 
             
         }
@@ -579,9 +581,10 @@ class PayRentalDB {
         // Validate credentials
         if(empty($username_err) && empty($password_err)){
             // Prepare a select statement
-            $query = "SELECT host_id, host_username, password FROM hosts WHERE host_username = :username";
+            $query = "SELECT host_id, host_username, password FROM hosts WHERE host_username = :username and password= :password";
             $stmt = $this->pdo->prepare($query);
             $stmt->bindValue(':username', $u);
+            $stmt->bindValue(':password', $p);
             $stmt->execute();
 
             $stocks = [];
@@ -594,12 +597,12 @@ class PayRentalDB {
             }
 
             if (count($stocks) == 0) {
-                $username_err = "No account found with that username.";
+                $username_err = "No account found with that username and password.";
             }
 
-            if (!(strcmp($p, $stocks[0]["password"]) == 0)) {
-                $password_err = "The password you entered was not valid.";
-            }
+            // if (!(strcmp($p, $stocks[0]["password"]) == 0)) {
+                // $password_err = "The password you entered was not valid.";
+            // }
 
             
         }  
@@ -765,6 +768,55 @@ class PayRentalDB {
         }
         return $stocks;
     }
+
+     /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function host_my_property() {
+        // Prepare a select statement
+        $query = "SELECT user_id FROM currhost";
+        $stmt = $this->pdo->prepare($query);
+        // $stmt->bindValue(':id', $id);
+        $stmt->execute();
+
+        $host_id = "";
+        $out = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $out[] = [
+                'host_id' => $row['user_id']
+            ];
+            $host_id = $row['user_id'];
+        }
+        if (count($out) != 1){
+            return 0;
+        } 
+
+        // $host_id = strval($host_id);
+
+        $query = "SELECT payrental.id, property_type, room_type, cast(price as integer), payrental.city, number_of_reviews as rcount, cast(review_scores_rating as integer) as rating, picture_url FROM payrental WHERE host_id = :host_id";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->bindValue(':host_id', $host_id);
+        $stmt->execute();
+
+        $stocks = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $stocks[] = [
+                'id' => $row['id'],
+                'property_type' => $row['property_type'],
+                'room_type' => $row['room_type'],
+                'price' => $row['price'],
+                'city' => $row['city'],
+                'rcount' => $row['rcount'],
+                'rating' => $row['rating'],
+                'picture' => $row['picture_url']
+            ];
+        }
+
+        return $stocks;
+    }
+
 
     /**
      * Find stock by id

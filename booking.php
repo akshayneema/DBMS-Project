@@ -12,13 +12,16 @@
     $diff = $_GET['diff'];
     $price = $_GET['price'];
     $total_price = $price*$diff;
+    $success = false;
 
     if($_SERVER["REQUEST_METHOD"] == "POST"){
-        
         try {
             $pdo = Connection::get()->connect();
             $PayRentalDB = new PayRentalDB($pdo);
-            echo $PayRentalDB->confirm_booking($id,$ci_date,$co_date,$total_price);
+            $output = $PayRentalDB->confirm_booking($id,$ci_date,$co_date,$total_price);
+            if ($output == 1){
+                $success = true;
+            }
         } catch (\PDOException $e) {
             echo $e->getMessage();
         }
@@ -46,6 +49,10 @@
             <p><?php echo "Total price: ".$total_price?></p>
 
             <input type="submit" class="book" id = "book" value="Confirm Booking">
+
+            <?php if ($success) { ?>
+                <h2>Booking Successful!!!</h2>
+            <?php } ?>
 
         </form>
     </div>    
