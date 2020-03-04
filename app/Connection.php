@@ -636,6 +636,957 @@ class PayRentalDB {
         return array($username_err, $password_err);
     }
 
+     /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function count() {
+
+        $query = "SELECT city_data, count(*) as number_of_listings FROM payrental GROUP BY city_data ORDER BY count(*) desc";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $count = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $count[] = 
+            [
+                'city_data' => $row['city_data'],
+                'num_listings_by_city' => $row['number_of_listings'],
+            ];
+        }  
+
+        return $count;
+    }
+
+     /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function counthost() {
+
+        $query = "SELECT city_data, count(DISTINCT(host_id)) as number_of_hosts FROM payrental GROUP BY city_data ORDER BY count(DISTINCT(host_id)) desc";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $counthost = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $counthost[] = 
+            [
+                'city_data' => $row['city_data'],
+                'num_hosts_by_city' => $row['number_of_hosts'],
+            ];
+        }  
+        return $counthost;
+    }
+
+
+     /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function countreview() {
+
+        $query = "SELECT city_data, sum(cast(number_of_reviews as integer)) as number_of_reviews FROM payrental GROUP BY city_data ORDER BY sum(cast(number_of_reviews as integer)) desc";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $countreview = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $countreview[] = 
+            [
+                'city_data' => $row['city_data'],
+                'num_reviews_by_city' => $row['number_of_reviews'],
+            ];
+        }  
+
+        // echo "Size of count is :" .count($count)  ;   
+        
+      return $countreview;
+    }
+
+         /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function averageprice() {
+
+        $query = "SELECT city_data, avg(price) as average_price FROM payrental GROUP by city_data ORDER BY avg(price)";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $averageprice = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $averageprice[] = 
+            [
+                'city_data' => $row['city_data'],
+                'avg_price' => $row['average_price'],
+            ];
+        }  
+
+      return $averageprice;
+    }
+
+
+         /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function averagescore() {
+
+        $query = "SELECT city_data, avg(cast(review_scores_rating as integer)) as score FROM payrental GROUP BY city_data ORDER BY avg(cast(review_scores_rating as integer)) desc";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $averagescore = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $averagescore[] = 
+            [
+                'city_data' => $row['city_data'],
+                'avg_score' => $row['score'],
+            ];
+        }  
+
+      return $averagescore;
+    }
+
+    /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function averagelocscore() {
+
+        $query = "SELECT city_data, avg(cast(review_scores_location as integer)) as score FROM payrental GROUP BY city_data ORDER BY avg(cast(review_scores_location as integer)) desc";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $averagelocscore = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $averagelocscore[] = 
+            [
+                'city_data' => $row['city_data'],
+                'avg_loc_score' => $row['score'],
+            ];
+        }  
+
+      return $averagelocscore;
+    }
+
+
+    /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function numsuperhosts() {
+
+        $query = "SELECT city_data, count(*) as number_of_superhosts FROM payrental WHERE host_is_superhost = 't' GROUP BY city_data ORDER BY count(*) desc";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $numsuperhosts = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $numsuperhosts[] = 
+            [
+                'city_data' => $row['city_data'],
+                'num_superhosts' => $row['number_of_superhosts'],
+            ];
+        }  
+
+      return $numsuperhosts;
+    }
+
+
+    /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function reviewpermonth() {
+
+        $query = "SELECT city_data, avg(cast(reviews_per_month as double precision)) as average_reviews_per_month FROM payrental GROUP by city_data ORDER by avg(cast(reviews_per_month as double precision)) desc";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $reviewpermonth = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $reviewpermonth[] = 
+            [
+                'city_data' => $row['city_data'],
+                'num_reviews_per_month' => $row['average_reviews_per_month'],
+            ];
+        }  
+
+      return $reviewpermonth;
+    }
+
+
+    /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function cleanestcity() {
+
+        $query = "SELECT city_data, avg(cast(review_scores_cleanliness as double precision)) as cleanliness_scores FROM payrental WHERE cast(review_scores_cleanliness as double precision) IS NOT NULL GROUP by city_data ORDER by avg(cast(review_scores_cleanliness as double precision)) desc";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $cleanestcity = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $cleanestcity[] = 
+            [
+                'city_data' => $row['city_data'],
+                'clean_score' => $row['cleanliness_scores'],
+            ];
+        }  
+
+      return $cleanestcity;
+    }
+
+    // $highproperty = $PayRentalDB->highproperty();
+        /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function highproperty() {
+        $query = "SELECT listingsperhost.host_id, hosts.host_name, count_listings_per_host as highest_listings FROM listingsperhost, hosts where listingsperhost.host_id = hosts.host_id ORDER by count_listings_per_host desc LIMIT 5";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $highproperty = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $highproperty[] = 
+            [
+                'host_id' => $row['host_id'],
+                'host_name' => $row['host_name'],
+                'num_property' => $row['highest_listings'],
+            ];
+        }  
+
+      return $highproperty;
+    }
+
+    // $highreviews = $PayRentalDB->highreviews();
+        /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function highreviews() {
+
+        $query = "SELECT id, host_name, city_data, sum(cast(number_of_reviews as integer)) as num_reviews FROM payrental GROUP BY id, host_name, city_data ORDER BY sum(cast(number_of_reviews as integer)) desc LIMIT 5";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $highreviews = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $highreviews[] = 
+            [
+                'id' => $row['id'],
+                'host_name' => $row['host_name'],
+                'city_data' => $row['city_data'],
+                'num_reviews' => $row['num_reviews'],
+            ];
+        }  
+
+      return $highreviews;
+    }
+
+
+    // $goodhost = $PayRentalDB->goodhost();
+    /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function goodhost() {
+
+        $query = "SELECT city_data, host_name, count(*) as number_goodhosts FROM goodhosts GROUP BY city_data, host_name ORDER BY count(*) desc LIMIT 5";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $goodhost = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $goodhost[] = 
+            [
+                'city_data' => $row['city_data'],
+                'host_name' => $row['host_name'],
+                'number_goodhosts' => $row['number_goodhosts'],
+            ];
+        }  
+
+      return $goodhost;
+    }
+
+
+    // $longterm = $PayRentalDB->longterm();
+        /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function longterm() {
+
+        $query = "SELECT city_data, host_name, count(*) as number_longtermhosts FROM goodhosts GROUP BY city_data, host_name ORDER BY count(*) desc LIMIT 5";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $longterm = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $longterm[] = 
+            [
+                'city_data' => $row['city_data'],
+                'host_name' => $row['host_name'],
+                'number_longtermhosts' => $row['number_longtermhosts'],
+            ];
+        }  
+
+      return $longterm;
+    }
+
+            // $avgearning = $PayRentalDB->avgearning();
+                /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function avgearning() {
+
+        $query = "SELECT host_id, host_name, avg(price) as avg_price FROM payrental GROUP BY host_id, host_name ORDER BY avg(price) DESC LIMIT 5";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $avgearning = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $avgearning[] = 
+            [
+                'host_id' => $row['host_id'],
+                'host_name' => $row['host_name'],
+                'avg_price' => $row['avg_price'],
+            ];
+        }  
+
+      return $avgearning;
+    }
+
+        /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function mostactiveuser() {
+
+        $query = "SELECT reviewer_id, name, count(*) as num_reviews FROM reviews, users WHERE reviews.reviewer_id = users.user_id GROUP BY reviewer_id, name ORDER BY count(*) DESC LIMIT 5";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $mostactiveuser = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $mostactiveuser[] = 
+            [
+                'reviewer_id' => $row['reviewer_id'],
+                'name' => $row['name'],
+                'num_reviews' => $row['num_reviews'],
+            ];
+        }  
+
+      return $mostactiveuser;
+    }
+
+       /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function mostbookings() {
+
+        $query = "SELECT bookings.user_id, users.name, count(*) as num_bookings FROM bookings, users WHERE bookings.user_id = users.user_id GROUP BY bookings.user_id, name ORDER BY count(*) DESC LIMIT 5";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $mostbookings = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $mostbookings[] = 
+            [
+                'user_id' => $row['user_id'],
+                'name' => $row['name'],
+                'num_bookings' => $row['num_bookings'],
+            ];
+        }  
+
+      return $mostbookings;
+    }
+
+       /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function highdemand() {
+
+        $query = "SELECT id, city_data, sum(cast(number_of_reviews as integer)) as review_count FROM payrental GROUP BY id, city_data ORDER BY sum(cast(number_of_reviews as integer))  desc LIMIT 10";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $highdemand = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $highdemand[] = 
+            [
+                'id' => $row['id'],
+                'city_data' => $row['city_data'],
+                'review_count' => $row['review_count'],
+            ];
+        }  
+
+      return $highdemand;
+    }
+
+       /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function highprice() {
+
+        $query = "SELECT id, city_data, host_id, avg(price) as price FROM payrental GROUP BY id, host_id, city_data ORDER BY avg(price) desc LIMIT 5";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $highprice = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $highprice[] = 
+            [
+                'id' => $row['id'],
+                'city_data' => $row['city_data'],
+                'host_id' => $row['host_id'],
+                'price' => $row['price'],
+            ];
+        }  
+
+      return $highprice;
+    }
+
+
+   /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function lowprice() {
+
+        $query = "SELECT id, city_data, host_id, avg(price) as price FROM payrental GROUP BY id, host_id, city_data ORDER BY avg(price) asc LIMIT 5";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $lowprice = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $lowprice[] = 
+            [
+                'id' => $row['id'],
+                'city_data' => $row['city_data'],
+                'host_id' => $row['host_id'],
+                'price' => $row['price'],
+            ];
+        }  
+
+      return $lowprice;
+    }
+
+    // $listingny = $PayRentalDB-> listingny();
+    /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function listingny() {
+
+        $query = "SELECT city, sum(number_of_listings) AS total_listings FROM listingsbyareany WHERE city IS NOT NULL GROUP BY city ORDER BY sum(number_of_listings) desc LIMIT 3";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $listingny = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $listingny[] = 
+            [
+                'city' => $row['city'],
+                'total_listings' => $row['total_listings'],
+            ];
+        }  
+
+      return $listingny;
+    }
+
+    /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function listingla() {
+
+        $query = "SELECT city, sum(number_of_listings) AS total_listings FROM listingsbyareala WHERE city IS NOT NULL GROUP BY city ORDER BY sum(number_of_listings) desc LIMIT 3";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $listingla = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $listingla[] = 
+            [
+                'city' => $row['city'],
+                'total_listings' => $row['total_listings'],
+            ];
+        }  
+
+      return $listingla;
+    }
+
+            // $listingc = $PayRentalDB-> listingc();
+    /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function listingc() {
+
+        $query = "SELECT city, sum(number_of_listings) AS total_listings FROM listingsbyareachicago WHERE city IS NOT NULL GROUP BY city ORDER BY sum(number_of_listings) desc LIMIT 3";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $listingc = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $listingc[] = 
+            [
+                'city' => $row['city'],
+                'total_listings' => $row['total_listings'],
+            ];
+        }  
+
+      return $listingc;
+    }
+            // $hostny = $PayRentalDB-> hostny();
+    /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function hostny() {
+
+        $query = "SELECT city, sum(number_of_hosts) AS total_hosts FROM hostsbyareany WHERE city IS NOT NULL GROUP BY city ORDER BY sum(number_of_hosts) desc LIMIT 3";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $hostny = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $hostny[] = 
+            [
+                'city' => $row['city'],
+                'total_hosts' => $row['total_hosts'],
+            ];
+        }  
+
+      return $hostny;
+    }
+            // $hostla = $PayRentalDB-> hostla();
+     /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function hostla() {
+
+        $query = "SELECT city, sum(number_of_hosts) AS total_hosts FROM hostsbyareala WHERE city IS NOT NULL GROUP BY city ORDER BY sum(number_of_hosts) desc LIMIT 3";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $hostla = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $hostla[] = 
+            [
+                'city' => $row['city'],
+                'total_hosts' => $row['total_hosts'],
+            ];
+        }  
+
+      return $hostla;
+    }
+            // $hostc= $PayRentalDB-> hostc();
+      /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function hostc() {
+
+        $query = "SELECT city, sum(number_of_hosts) AS total_hosts FROM hostsbyareachicago WHERE city IS NOT NULL GROUP BY city ORDER BY sum(number_of_hosts) desc LIMIT 3";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $hostc = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $hostc[] = 
+            [
+                'city' => $row['city'],
+                'total_hosts' => $row['total_hosts'],
+            ];
+        }  
+
+      return $hostc;
+    }
+            // $reviewny= $PayRentalDB-> reviewny();
+      /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function reviewny() {
+
+        $query = "SELECT city, sum(number_of_reviews) AS total_reviews FROM reviewsbyareany WHERE city IS NOT NULL GROUP BY city ORDER BY sum(number_of_reviews) desc LIMIT 3";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $reviewny = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $reviewny[] = 
+            [
+                'city' => $row['city'],
+                'total_reviews' => $row['total_reviews'],
+            ];
+        }  
+
+      return $reviewny;
+    }
+            // $reviewla= $PayRentalDB-> reviewla();
+       /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function reviewla() {
+
+        $query = "SELECT city, sum(number_of_reviews) AS total_reviews FROM reviewsbyareala WHERE city IS NOT NULL GROUP BY city ORDER BY sum(number_of_reviews) desc LIMIT 3";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $reviewla = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $reviewla[] = 
+            [
+                'city' => $row['city'],
+                'total_reviews' => $row['total_reviews'],
+            ];
+        }  
+
+      return $reviewla;
+    }
+            // $reviewc= $PayRentalDB-> reviewc();
+        /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function reviewc() {
+
+        $query = "SELECT city, sum(number_of_reviews) AS total_reviews FROM reviewsbyareachicago WHERE city IS NOT NULL GROUP BY city ORDER BY sum(number_of_reviews) desc LIMIT 3";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $reviewc = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $reviewc[] = 
+            [
+                'city' => $row['city'],
+                'total_reviews' => $row['total_reviews'],
+            ];
+        }  
+
+      return $reviewc;
+    }
+            // $avpriceny= $PayRentalDB-> avpriceny();
+        /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function avpriceny() {
+
+        $query = "SELECT city, sum(average_price) AS average_price FROM avgpricebyareany WHERE city IS NOT NULL GROUP BY city ORDER BY sum(average_price) desc LIMIT 3";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $avpriceny = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $avpriceny[] = 
+            [
+                'city' => $row['city'],
+                'average_price' => $row['average_price'],
+            ];
+        }  
+
+      return $avpriceny;
+    }
+            // $avpricela= $PayRentalDB-> avpricela();
+        /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function avpricela() {
+
+        $query = "SELECT city, sum(average_price) AS average_price FROM avgpricebyareala WHERE city IS NOT NULL GROUP BY city ORDER BY sum(average_price) desc LIMIT 3";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $avpricela = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $avpricela[] = 
+            [
+                'city' => $row['city'],
+                'average_price' => $row['average_price'],
+            ];
+        }  
+
+      return $avpricela;
+    }
+            // $avpricec= $PayRentalDB-> avpricec();
+     /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function avpricec() {
+
+        $query = "SELECT city, sum(average_price) AS average_price FROM avgpricebyareachicago WHERE city IS NOT NULL GROUP BY city ORDER BY sum(average_price) desc LIMIT 3";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $avpricec = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $avpricec[] = 
+            [
+                'city' => $row['city'],
+                'average_price' => $row['average_price'],
+            ];
+        }  
+
+      return $avpricec;
+    }
+
+
+             /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function roomtype() {
+
+        $query = "SELECT room_type, count(*) as type_of_room FROM payrental GROUP BY room_type ORDER BY count(*) desc";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $roomtype = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $roomtype[] = 
+            [
+                'room_type' => $row['room_type'],
+                'number_of_rooms' => $row['type_of_room'],
+            ];
+        }  
+
+      return $roomtype;
+    }
+
+         /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function roomny() {
+
+        $query = "SELECT room_type, count(*) as type_of_room FROM payrental WHERE city_data = 'New York' GROUP BY room_type ORDER BY count(*) desc";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $roomny = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $roomny[] = 
+            [
+                'room_type' => $row['room_type'],
+                'number_of_rooms' => $row['type_of_room'],
+            ];
+        }  
+
+      return $roomny;
+    }
+
+             /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function roomla() {
+
+        $query = "SELECT room_type, count(*) as type_of_room FROM payrental WHERE city_data = 'Los Angeles' GROUP BY room_type ORDER BY count(*) desc";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $roomla = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $roomla[] = 
+            [
+                'room_type' => $row['room_type'],
+                'number_of_rooms' => $row['type_of_room'],
+            ];
+        }  
+
+      return $roomla;
+    }
+
+             /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function roomc() {
+
+        $query = "SELECT room_type, count(*) as type_of_room FROM payrental WHERE city_data = 'Chicago' GROUP BY room_type ORDER BY count(*) desc";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $roomc = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $roomc[] = 
+            [
+                'room_type' => $row['room_type'],
+                'number_of_rooms' => $row['type_of_room'],
+            ];
+        }  
+
+      return $roomc;
+    }
+
+             /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function propertytype() {
+
+        $query = "SELECT property_type, count(*) as type_of_property FROM payrental GROUP BY property_type ORDER BY count(*) desc";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $propertytype = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $propertytype[] = 
+            [
+                'property_type' => $row['property_type'],
+                'type_of_property' => $row['type_of_property'],
+            ];
+        }  
+
+      return $propertytype;
+    }
+
+             /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function propertyny() {
+
+        $query = "SELECT property_type, count(*) as type_of_property FROM payrental WHERE city_data = 'New York' GROUP BY property_type ORDER BY count(*) desc LIMIT 5";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $propertyny = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $propertyny[] = 
+            [
+                'property_type' => $row['property_type'],
+                'type_of_property' => $row['type_of_property'],
+            ];
+        }  
+
+      return $propertyny;
+    }
+
+                 /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function propertyla() {
+
+        $query = "SELECT property_type, count(*) as type_of_property FROM payrental WHERE city_data = 'Los Angeles'  GROUP BY property_type ORDER BY count(*) desc LIMIT 5";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $propertyla = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $propertyla[] = 
+            [
+                'property_type' => $row['property_type'],
+                'type_of_property' => $row['type_of_property'],
+            ];
+        }  
+
+      return $propertyla;
+    }
+
+                 /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function propertyc() {
+
+        $query = "SELECT property_type, count(*) as type_of_property FROM payrental WHERE city_data = 'Chicago'  GROUP BY property_type ORDER BY count(*) desc LIMIT 5";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $propertyc = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $propertyc[] = 
+            [
+                'property_type' => $row['property_type'],
+                'type_of_property' => $row['type_of_property'],
+            ];
+        }  
+
+      return $propertyc;
+    }
+
+
+
+
+             /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function numreviewsbyyear() {
+
+        $query = "SELECT extract(year from date) as year, count(*) as num_reviews FROM reviews GROUP BY extract(year from date) ORDER BY count(*) desc";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $numreviewsbyyear = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $numreviewsbyyear[] = 
+            [
+                'year' => $row['year'],
+                'number_of_reviews' => $row['num_reviews'],
+            ];
+        }  
+
+      return $numreviewsbyyear;
+     }
 
      /**
      * Find stock by id
