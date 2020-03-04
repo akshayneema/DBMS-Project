@@ -957,8 +957,17 @@ class PayRentalDB {
      * @return a stock object
      */
     public function add_property($name , $picture_url , $city , $state , $zipcode , $country , $latitude , $longitude , $property_type , $room_type , $accommodates , $bathrooms , $bedrooms , $beds , $price , $security_deposit , $cleaning_fee , $minimum_nights , $maximum_nights) {
-    
-            $query = "insert into payrental(name , picture_url , city , state , zipcode , country , latitude , longitude , property_type , room_type , accommodates , bathrooms , bedrooms , beds , price , security_deposit , cleaning_fee , minimum_nights , maximum_nights) values (:name , :picture_url , :city , :state , :zipcode , :country , :latitude , :longitude , :property_type , :room_type , :accommodates , :bathrooms , :bedrooms , :beds , :price , :security_deposit , :cleaning_fee , :minimum_nights , :maximum_nights)";
+            $q = "select user_id from currhost";
+            $stmt = $this->pdo->prepare($q);
+            $stmt->execute();
+            $stocks = [];
+            while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+                $stocks[] = [
+                    'id' => $row['user_id']
+                ];
+            }
+
+            $query = "insert into payrental(id, host_id, name , picture_url , city , state , zipcode , country , latitude , longitude , property_type , room_type , accommodates , bathrooms , bedrooms , beds , price , security_deposit , cleaning_fee , minimum_nights , maximum_nights) values ((select max(id) from payrental)+1, ".$stocks[0]['id'].",:name , :picture_url , :city , :state , :zipcode , :country , :latitude , :longitude , :property_type , :room_type , :accommodates , :bathrooms , :bedrooms , :beds , :price , :security_deposit , :cleaning_fee , :minimum_nights , :maximum_nights)";
             $stmt = $this->pdo->prepare($query);
             //$stmt->bindValue(':username', $u);
             
