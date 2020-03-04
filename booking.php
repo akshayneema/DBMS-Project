@@ -11,14 +11,14 @@
     $co_date = $_GET['co_date'];
     $diff = $_GET['diff'];
     $price = $_GET['price'];
-    $total_price = $price*$diff
+    $total_price = $price*$diff;
 
     if($_SERVER["REQUEST_METHOD"] == "POST"){
         
         try {
             $pdo = Connection::get()->connect();
             $PayRentalDB = new PayRentalDB($pdo);
-            $PayRentalDB->confirm_booking($id,$ci_date,$co_date,$total_price);
+            echo $PayRentalDB->confirm_booking($id,$ci_date,$co_date,$total_price);
         } catch (\PDOException $e) {
             echo $e->getMessage();
         }
@@ -37,7 +37,7 @@
     <?php include "./mynav_logged_in.php"; ?>
     <div class="wrapper">
         <h2>Final Booking Step</h2>
-        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"])."?property_id=".$id ; ?>" method="post">
+        <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"])."?id=".$id."&ci_date=".$ci_date."&co_date=".$co_date."&diff=".$diff."&price=".$price ; ?>" method="post">
             <p><?php echo "Property id: ".$id?></p>
             <p><?php echo "Check in date: ".$ci_date?></p>
             <p><?php echo "Check out date: ".$co_date?></p>

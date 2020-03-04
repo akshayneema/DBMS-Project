@@ -891,7 +891,8 @@ class PayRentalDB {
             ];
             $host_id = $row['host_id'];
         }
-
+        echo "host_id count: ".count($out)."\n";
+        echo "host_id: ".$host_id;
         if (count($out) != 1){
             return 0;
         } 
@@ -908,7 +909,7 @@ class PayRentalDB {
             ];
             $user_id = $row['user_id'];
         }
-
+        echo "user_id: ".$user_id;
         if (count($out) != 1){
             return 0;
         } 
