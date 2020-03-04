@@ -20,3 +20,4 @@ ALTER TABLE hosts ADD COLUMN password text NOT NULL default substr(md5(random():
 CREATE TABLE bookings (booking_id serial primary key, property_id integer, host_id integer, user_id integer, check_in_date timestamp, check_out_date timestamp, number_adults integer, number_children integer);
 create sequence seq start with 314893953;
 ALTER TABLE hosts ALTER COLUMN host_id SET DEFAULT nextval('seq');
+

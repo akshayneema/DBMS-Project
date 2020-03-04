@@ -14,23 +14,29 @@
         <?php include "./header.php"; ?>
         <?php include "./mynav_logged_in.php"; ?>
 
-        <form action="property.php" method="GET">
+        <form action="property.php" method="POST">
             <!-- Price Range($): <input type="number" name="lower"> <input type="number" name="upper"> -->
             
             <input type="hidden" name="country" id="countryId" value="US"/>
             
-            State: <select name="state" class="states order-alpha" id="stateId">
+            <!-- State: <select name="state" class="states order-alpha" id="stateId">
                 <option value="">Select State</option>
-            </select>
+            </select> -->
             
-            City: <select name="city" class="cities order-alpha" id="cityId">
+            <!-- City: <select name="city" class="cities order-alpha" id="cityId">
                 <option value="">Select City</option>
-            </select>
+            </select> -->
+            City: <datalist id="cities">
+                            <option value="Chicago"></option>
+                            <option value="New York"></option>
+                            <option value="Los Angeles"></option>
+                        </datalist>
+                        <input  autoComplete="on" list="cities" name="city"/> 
             
-            Distance: <br> <input type="range" name="dist" min="0" max="200" step = "5" id="a" value="0" class ="slider" oninput="x.value=parseInt(a.value)"><output name="x" for="a"></output>
+            Distance: <br> <input type="range" name="dist" min="0" max="200" step = "5" id="a" value="200" class ="slider" oninput="x.value=parseInt(a.value)"><output name="x" for="a"></output>
             
             <br>
-            Price: <br><input type="range" name="price" min="0" max="1500" step = "5" id="b" value="0" class ="slider" oninput="y.value=parseInt(b.value)"><output name="y" for="b"></output>
+            Price: <br><input type="range" name="price" min="0" max="1500" step = "5" id="b" value="1500" class ="slider" oninput="y.value=parseInt(b.value)"><output name="y" for="b"></output>
 
             <br> <br>
             
@@ -113,19 +119,19 @@
             use PostgreSQLTutorial\Connection as Connection;
             use PostgreSQLTutorial\PayRentalDB as PayRentalDB;
                 
-            try {
-                // connect to the PostgreSQL database
-                $pdo = Connection::get()->connect();
-                //
-                $PayRentalDB = new PayRentalDB($pdo);
-                // // get all stocks data
-                // $stocks = $PayRentalDB->all();
-                // get all stocks data
-                $stocks = $PayRentalDB->findByPK($_GET["ptype"], $_GET["rtype"], $_GET["city"], $_GET["state"], $_GET["dist"], $_GET["price"], $_GET["sort"]);
-                
-            } catch (\PDOException $e) {
-                echo "<h4 style='color:red'> Please enter the details </h4>";
-                // echo $e->getMessage();
+            if($_SERVER["REQUEST_METHOD"] == "POST"){
+                if (!strcmp($_POST["city"],"")==0) {
+                    try {
+                        $pdo = Connection::get()->connect();
+                        $PayRentalDB = new PayRentalDB($pdo);
+                        $stocks = $PayRentalDB->findByPK($_POST["ptype"], $_POST["rtype"], $_POST["city"], $_POST["dist"], $_POST["price"], $_POST["sort"]);
+                    } catch (\PDOException $e) {
+                        echo "<h4 style='color:red'> Please enter the details </h4>";
+                        // echo $e->getMessage();
+                    }
+                } else {
+                    echo "Please enter the city name!! ";
+                }
             }
         ?>
         <div class="container">
@@ -159,6 +165,11 @@
                             <td>
                                 <a href="<?php echo htmlspecialchars($stock['picture']); ?>">
                                     Photos
+                                </a>
+                            </td>
+                            <td>
+                                <a href=<?php echo "property_details.php?property_id=".$stock['id'] ?>>
+                                    More Info
                                 </a>
                             </td>
                         </tr>

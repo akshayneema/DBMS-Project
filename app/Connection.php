@@ -270,77 +270,45 @@ class PayRentalDB {
      * @param int $id
      * @return a stock object
      */
-    public function findByPK($ptype, $rtype, $city, $state, $dist, $price, $sortby) {
+    public function findByPK($ptype, $rtype, $city, $dist, $price, $sortby) {
         // prepare SELECT statement
-        $query = "SELECT payrental.id, property_type, room_type, cast(price as integer), payrental.city, number_of_reviews as rcount, cast(review_scores_rating as integer) as rating, round(distance(latitude::decimal, longitude::decimal, lat, lng)::numeric, 2) as distance, picture_url FROM payrental, cityinfo";
+        $lat = 0.00;
+        $lng = 0.00;
+        if (strcmp($city,"New York")==0)
+        {
+            $lat = 40.6943;
+            $lng = -73.9249;
+        } else if (strcmp($city,"Chicago")==0)
+        {
+            $lat = 41.8373;
+            $lng = -87.6862;
+        } else if (strcmp($city,"Los Angeles")==0)
+        {
+            $lat = 34.1139;
+            $lng = -118.4068;
+        } 
+        $query = "SELECT payrental.id, property_type, room_type, cast(price as integer), payrental.city, number_of_reviews as rcount, cast(review_scores_rating as integer) as rating, round(distance(latitude::decimal, longitude::decimal, :lat, :lng)::numeric, 2) as distance, picture_url FROM payrental";
         $count = 0;
-        $state_entered = false;
-        $city_entered = false;
+
+        $query=$query." WHERE city_data = :city";
+
         if(!(strcmp($rtype,"All")==0 OR strcmp($rtype,"")==0))
         {
-            $count=$count+1;
-            if($count == 1)
-            {
-                $query=$query." WHERE room_type = :rtype";
-            }
-            else{
-                $query=$query." AND room_type = :rtype";
-            }
+            $query=$query." AND room_type = :rtype";
         }
         if(!(strcmp($ptype,"All")==0 OR strcmp($ptype,"")==0))
         {
-            $count=$count+1;
-            if($count == 1)
-            {
-                $query=$query." WHERE property_type = :ptype";
-            }
-            else{
-                $query=$query." AND property_type = :ptype";
-            }
+            $query=$query." AND property_type = :ptype";
         }
-        if(!(strcmp($city,"All")==0 OR strcmp($city,"")==0))
-        {
-            $count=$count+1;
-            $city_entered = true;
-            if($count == 1)
-            {
-                $query=$query." WHERE cityinfo.city = :city";
-            }
-            else{
-                $query=$query." AND cityinfo.city = :city";
-            }
-        }
-        if(!(strcmp($state,"All")==0 OR strcmp($state,"")==0))
-        {
-            $count=$count+1;
-            $state_entered = true;
-            if($count == 1)
-            {
-                $query=$query." WHERE cityinfo.state_name = :state";
-            }
-            else{
-                $query=$query." AND cityinfo.state_name = :state";
-            }
-        }
-        if($count == 1)
-        {
-            $query=$query." WHERE payrental.price <= :price";
-        }
-        else{
-            $query=$query." AND payrental.price <= :price";
-        }
-        if ($state_entered AND $city_entered)
-        {
-            if(strcmp($sortby,"")==0)
-                $query=$query." AND distance(latitude::decimal, longitude::decimal, lat, lng)<:dist LIMIT 10;";
-            if(strcmp($sortby,"Rating")==0)
-                $query=$query." AND distance(latitude::decimal, longitude::decimal, lat, lng)<:dist AND review_scores_rating is not null order by ".$sortby." desc LIMIT 10;";
-            else
-                $query=$query." AND distance(latitude::decimal, longitude::decimal, lat, lng)<:dist order by ".$sortby." LIMIT 10;";
-        }
+        $query=$query." AND payrental.price <= :price";
+        if(strcmp($sortby,"")==0)
+            $query=$query." AND distance(latitude::decimal, longitude::decimal, :lat1, :lng1)<:dist LIMIT 10;";
+        else if(strcmp($sortby,"Rating")==0)
+            $query=$query." AND distance(latitude::decimal, longitude::decimal, :lat1, :lng1)<:dist AND review_scores_rating is not null order by ".$sortby." desc LIMIT 10;";
+        else
+            $query=$query." AND distance(latitude::decimal, longitude::decimal, :lat1, :lng1)<:dist order by ".$sortby." LIMIT 10;";
         
-
-        // echo $query;
+        echo $query;
         $stmt = $this->pdo->prepare($query);
 
         // bind value to the :id parameter
@@ -356,22 +324,18 @@ class PayRentalDB {
         {
             $stmt->bindValue(':city', $city);
         }
-        if(!(strcmp($state,"All")==0 OR strcmp($state,"")==0))
-        {
-            $stmt->bindValue(':state', $state);
-        }
-        if ($state_entered AND $city_entered)
-        {
-            $stmt->bindValue(':dist', $dist);
-        }
+        $stmt->bindValue(':dist', $dist);
         $stmt->bindValue(':price', $price);
+        $stmt->bindValue(':lat', $lat);
+        $stmt->bindValue(':lng', $lng);
+        $stmt->bindValue(':lat1', $lat);
+        $stmt->bindValue(':lng1', $lng);
 
+        // echo " stmt: ".$stmt;
         
         
         // execute the statement
-        if ($state_entered AND $city_entered)
-            $stmt->execute();
- 
+        $stmt->execute();
         // // return the result set as an object
         // return $stmt->fetchObject();
 
@@ -750,7 +714,40 @@ class PayRentalDB {
         $stocks = [];
         while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
             $stocks[] = [
-                'username' => $row['username'],
+                'booking_id' => $row['booking_id'],
+                'name' => $row['name'],
+                'check_in_date' => $row['check_in_date'],
+                'check_out_date' => $row['check_out_date'],
+                'price' => $row['price']
+            ];
+        }
+
+        if (count($stocks) == 0) {
+            $username_err = "No account found with that username.";
+        }
+
+        if (!(strcmp($p, $stocks[0]["password"]) == 0)) {
+            $password_err = "The password you entered was not valid.";
+        }
+        return $stocks;
+    }
+
+     /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function host_my_bookings() {
+        // Prepare a select statement
+        // echo $user_id;
+        $query = "SELECT booking_id, payrental.name, bookings.check_in_date::date, bookings.check_out_date::date, (check_out_date::date - check_in_date::date)*price as price FROM bookings, payrental, currhost WHERE bookings.host_id = currhost.user_id and bookings.property_id = payrental.id";
+        $stmt = $this->pdo->prepare($query);
+        // $stmt->bindValue(':userid', $user_id);
+        $stmt->execute();
+
+        $stocks = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $stocks[] = [
                 'booking_id' => $row['booking_id'],
                 'name' => $row['name'],
                 'check_in_date' => $row['check_in_date'],
@@ -774,6 +771,68 @@ class PayRentalDB {
      * @param int $id
      * @return a stock object
      */
+    public function get_property_detials($id) {
+        $query = "SELECT name, street, neighbourhood, city, state, zipcode, summary, property_type, room_type, accommodates, bathrooms, bedrooms, beds, amenities, square_feet, host_name, host_since, host_location, host_about, host_response_time, host_response_rate, host_acceptance_rate, host_is_superhost, host_listings_count, host_identity_verified, price, weekly_price, monthly_price, security_deposit, cleaning_fee, guests_included, extra_people, picture_url, instant_bookable, is_business_travel_ready, cancellation_policy, review_scores_rating, review_scores_cleanliness, review_scores_checkin, review_scores_communication, review_scores_location, review_scores_value FROM payrental WHERE id = :id";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->bindValue(':id', $id);
+        $stmt->execute();
+
+        $details = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $details[] = [
+                'id' => $id,
+                'name' => $row['name'],
+                'street' => $row['street'],
+                'neighbourhood' => $row['neighbourhood'],
+                'city' => $row['city'],
+                'state' => $row['state'],
+                'zipcode' => $row['zipcode'],
+                'summary' => $row['summary'],
+                'property_type' => $row['property_type'],
+                'room_type' => $row['room_type'],
+                'accommodates' => $row['accommodates'],
+                'bathrooms' => $row['bathrooms'],
+                'bedrooms' => $row['bedrooms'],
+                'beds' => $row['beds'],
+                'amenities' => $row['amenities'],
+                'square_feet' => $row['square_feet'],
+                'host_name' => $row['host_name'],
+                'host_since' => $row['host_since'],
+                'host_location' => $row['host_location'],
+                'host_about' => $row['host_about'],
+                'host_response_time' => $row['host_response_time'],
+                'host_response_rate' => $row['host_response_rate'],
+                'host_acceptance_rate' => $row['host_acceptance_rate'],
+                'host_is_superhost' => $row['host_is_superhost'],
+                'host_listings_count' => $row['host_listings_count'],
+                'host_identity_verified' => $row['host_identity_verified'],
+                'price' => $row['price'],
+                'weekly_price' => $row['weekly_price'],
+                'monthly_price' => $row['monthly_price'],
+                'security_deposit' => $row['security_deposit'],
+                'cleaning_fee' => $row['cleaning_fee'],
+                'guests_included' => $row['guests_included'],
+                'extra_people' => $row['extra_people'],
+                'picture' => $row['picture_url'],
+                'instant_bookable' => $row['instant_bookable'],
+                'is_business_travel_ready' => $row['is_business_travel_ready'],
+                'cancellation_policy' => $row['cancellation_policy'],
+                'review_scores_rating' => $row['review_scores_rating'],
+                'review_scores_cleanliness' => $row['review_scores_cleanliness'],
+                'review_scores_checkin' => $row['review_scores_checkin'],
+                'review_scores_communication' => $row['review_scores_communication'],
+                'review_scores_location' => $row['review_scores_location'],
+                'review_scores_value' => $row['review_scores_value'],
+            ];
+        }
+        return $details;
+    }
+
+     /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
     public function logout() {
         // Prepare a select statement
         // echo $user_id;
@@ -786,6 +845,53 @@ class PayRentalDB {
         // $stmt->bindValue(':userid', $user_id);
         $stmt->execute();
     }
+    /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function get_cal_values($id) {
+        $query = "SELECT listing_id, date, available, price FROM calender WHERE listing_id = :id ORDER BY date";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->bindValue(':id', $id);
+        $stmt->execute();
+
+        $cal_values = [];
+        $available_list = [];
+        $price_list = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $cal_values[] = [
+                'id' => $row['listing_id'],
+                'date' => $row['date'],
+                'available' => $row['available'],
+                'price' => $row['price'],
+            ];
+            $available_list[] = $row['available'];
+            $price_list[] = $row['price'];
+        }
+        return array($cal_values,$available_list,$price_list);
+    }
+
+    // /**
+    //  * Find stock by id
+    //  * @param int $id
+    //  * @return a stock object
+    //  */
+    // public function find_name() {
+    //     $query = "SELECT count(*) from curruser";
+    //     $stmt = $this->pdo->prepare($query);
+    //     // $stmt->bindValue(':id', $id);
+    //     $stmt->execute();
+    //     $name = [];
+    //     while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+    //         $name[] = $row['count'];
+    //     }
+    //     if($name[0][0]==1)
+    //     {
+    //         echo 
+    //     }
+    //     return array($cal_values,$available_list,$price_list);
+    // }
 }
 
  

@@ -34,7 +34,7 @@
 </head>
 <body id = 'stats'>
     <?php include "./header.php"; ?>
-    <?php include "./mynav.php"; ?>
+    <?php include "./mynav_logged.php"; ?>
     <div class="wrapper">
         <h2>STATS</h2>
         <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="post">
