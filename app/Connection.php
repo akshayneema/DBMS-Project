@@ -774,6 +774,66 @@ class PayRentalDB {
         }
         return array($cal_values,$available_list,$price_list);
     }
+
+
+    /**
+     * Find stock by id
+     * @param int $id
+     * @return a stock object
+     */
+    public function confirm_booking($id,$ci_date,$co_date,$total_price) {
+        $query = "SELECT host_id FROM payrental WHERE id = :id";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->bindValue(':id', $id);
+        $stmt->execute();
+
+        $host_id = 0;
+        $out = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $out[] = [
+                'host_id' => $row['host_id']
+            ];
+            $host_id = $row['host_id'];
+        }
+
+        if (count($out) != 1){
+            return 0;
+        } 
+
+        $query = "SELECT user_id FROM curruser";
+        $stmt = $this->pdo->prepare($query);
+        $stmt->execute();
+
+        $user_id = 0;
+        $out = [];
+        while ($row = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+            $out[] = [
+                'user_id' => $row['user_id']
+            ];
+            $user_id = $row['user_id'];
+        }
+
+        if (count($out) != 1){
+            return 0;
+        } 
+
+        $ci_date .= " 00:00:00";
+        $co_date .= " 00:00:00";
+
+        $query = "INSERT INTO bookings (booking_id, property_id, host_id, user_id, check_in_date, check_out_date) VALUES (nextval('bookings_booking_id_seq'), :property_id, :host_id, :user_id, :ci_date::timestamp, :co_date::timestamp)";
+        echo "insert query:".$query;
+
+        $stmt = $this->pdo->prepare($query);
+        $stmt->bindValue(':property_id', $id);
+        $stmt->bindValue(':host_id', $host_id);
+        $stmt->bindValue(':user_id', $user_id);
+        $stmt->bindValue(':ci_date', $ci_date);
+        $stmt->bindValue(':co_date', $co_date);
+        $stmt->execute();
+
+        return 1;
+    }
+    
 }
 
  
